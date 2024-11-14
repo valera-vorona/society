@@ -9,7 +9,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
 
     w->mt = mt;
 
-//    w->units = NULL;
+    w->units = NULL;
 
     /* Reading world json file */
     w->json = read_json(fname);
@@ -31,19 +31,48 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         w->fps = 60.;
     }
 
-    /* Reading tiles */
+    /* Reading tile types */
+    w->map.tile_types = NULL;
     val = jq_find(w->json, "tiles", 0);
     w->gen_parts = NULL;
     if (val && jq_isarray(val)) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
-                struct jq_value *p = jq_find(v, "gen-part", 0);
+                struct tile_t t;
+                struct jq_value *p = jq_find(v, "id", 0);
+                if (p && jq_isinteger(p)) {
+                    t.id = p->value.integer;
+                } else {
+                    app_warning("'id' of tile is not found or not an integer");
+                    return 1;
+                }
+
+                p = jq_find(v, "name", 0);
+                if (p && jq_isstring(p)) {
+                    t.name = p->value.string;
+                } else {
+                    app_warning("'name' of tile is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "description", 0);
+                if (p && jq_isstring(p)) {
+                    t.description = p->value.string;
+                } else {
+                    app_warning("'description' of tile is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "gen-part", 0);
                 if (jq_isnumber(p)) {
+                    t.gen_part = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
                     arrput(w->gen_parts, p->type == JQ_V_INTEGER ? p->value.integer : p->value.real);
                 } else {
                     app_warning("'gen-part' is not a number");
                     return 1;
                 }
+
+                arrput(w->map.tile_types, t);
             } else {
                 app_warning("'tile' is not an object");
                 return 1;

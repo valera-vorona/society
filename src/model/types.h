@@ -9,7 +9,7 @@ struct jq_value;
 /*
  * enums 
  */
-
+/*
 enum tile_t {
     TT_UNKNOWN = 0,
     TT_OCEAN,
@@ -17,7 +17,7 @@ enum tile_t {
     TT_PLAIN,
     TT_MAX
 };
-
+*/
 enum resource_t {
     RT_UNKNOWN = 0,
     RT_WOOD
@@ -79,12 +79,20 @@ struct resource {
    struct vec2 coords;
 };
 
+struct tile_t {
+    int id;
+    char *name;         /* not strduped */
+    char *description;  /* not strduped */
+    float gen_part;
+};
+
 struct tile {
-    enum tile_t type;
+    int type;
 };
 
 struct map {
     struct vec2 size;
+    struct tile_t *tile_types;
     struct tile *tiles;
 };
 
