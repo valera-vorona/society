@@ -1,0 +1,61 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build and release directories
+build/
+release/
+
+# Build and run
+build
+debug
+run
+
+# Generated files
+data/
+doc/
+
+#Backup files
+*.bak
+*.swp
+
+# Assets
+assets/
+
+#Images
+#icon/
+#*.jpg
+#*.jpeg
+#*.png
+
+#Misc
+.vscode/

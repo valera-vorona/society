@@ -1,0 +1,71 @@
+Subjects:
+    map
+    unit
+    building
+    asset (bread, wheat etc.)
+    tool (axe etc.)
+    receipt
+    science
+    society
+
+map:
+    tiles
+
+tile:
+    coords
+    type
+    passability
+    resource
+    upgrade (road etc.)
+
+unit:
+    innate
+    characteristics
+    damage
+
+building:
+    coords
+    type
+    state
+    damage
+
+asset:
+    type
+    state
+    damage
+
+tool:
+    type
+    state
+    damage
+
+receipt:
+    target asset (bread)
+    tools (oven)
+    assets (wheat)
+
+science:
+    invention tree
+
+intention tree node:
+    target invention (wheel)
+    required inventions (harvesting)
+    required tools
+    required buildings
+    required units (scientists)
+
+invention:
+    flags (invented)
+    units
+    buildings
+    assets
+    tools
+    receipts
+    inventions
+    societies
+
+society:
+    type
+    state
+    units
+
