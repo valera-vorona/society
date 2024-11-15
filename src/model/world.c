@@ -81,12 +81,56 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         return 1;
     }
 
-    /* Reading units */
+    /* Reading unit types */
+    w->unit_types = NULL;
     val = jq_find(w->json, "units", 0);
     if (val && jq_isarray(val)) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
+                struct unit_t t;
+                struct jq_value *p = jq_find(v, "id", 0);
+                if (p && jq_isinteger(p)) {
+                    t.id = p->value.integer;
+                } else {
+                    app_warning("'id' of unit is not found or not an integer");
+                    return 1;
+                }
 
+                p = jq_find(v, "name", 0);
+                if (p && jq_isstring(p)) {
+                    t.name = p->value.string;
+                } else {
+                    app_warning("'name' of unit is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "tiles", 0);
+                if (p && jq_isarray(p)) {
+                    t.tiles = NULL;
+                    arrsetcap(t.tiles, jq_array_length(p));
+                    struct jq_value *a;
+                    jq_foreach_array(a, p) {
+                        if (jq_isinteger(a)) {
+                            arrput(t.tiles, a->value.integer);
+                        } else {
+                            app_warning("values of 'unit.tiles' should br integers");
+                            return 1;
+                        }
+                    }
+                } else {
+                    app_warning("'tiles' of unit is not found or not an array");
+                    return 1;
+                }
+
+                p = jq_find(v, "prob", 0);
+                if (jq_isnumber(p)) {
+                    t.prob = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
+                } else {
+                    app_warning("'prob' is not a number");
+                    return 1;
+                }
+
+                arrput(w->unit_types, t);
             } else {
                 app_warning("'unit' is not an object");
                 return 1;

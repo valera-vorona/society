@@ -30,7 +30,8 @@ void gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     for (int i = 0, y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x, ++i) {
             float r = .5 + perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
-            map->tiles[i].type = individual_distribute(gen_parts, r * 100.);
+            struct tile tile = { individual_distribute(gen_parts, r * 100.), { 0 } };
+            map->tiles[i] = tile;
         }
     }
 
@@ -40,28 +41,26 @@ void gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
 void gen_units(struct world *w) {
      for (int y = 0, ye = w->map.size.y; y != ye; ++y) {
         for (int i = y*w->map.size.x, x = 0, xe = w->map.size.x; x != xe; ++i, ++x) {
-            struct jq_value *units;
-            struct jq_value *u;
-            units = jq_find(w->json, "units", 0);
+            float prob_sum = .0;
+            float *probs = NULL;
+            arrsetlen(probs, arrlenu(w->unit_types));
+            for (int i = 0, ie = arrlenu(w->unit_types); i != ie; ++i) {
+                probs[i] = w->unit_types[i].prob;
+                prob_sum += w->unit_types[i].prob;
+            }
 
-            /* looping through units */
-            jq_foreach_array(u, units) {
-                struct jq_value *tiles;
-                struct jq_value *t;
-                tiles = jq_find(u, "tiles", 0);
-
-                /* looping through the unit's tile array */
-                jq_foreach_array(t, tiles) {
-                    if (t->value.integer == w->map.tiles[i].type) {
-                        struct jq_value *prob;
-                        prob = jq_find(u, "prob", 0);
-                        if ((float)mt_random_uint32(w->mt) / (float)0xffffffff < prob->value.real) {
-                            struct unit u = { { x*64, y*64 }, { 0, 0 }, { 0, 0 } };
-                            arrput(w->units, u);
-                        }   
+            for (int i = 0, ie = arrlenu(w->unit_types); i != ie; ++i) {
+                for (int j = 0, je = arrlenu(w->unit_types[i].tiles); j != je; ++j) {
+                    float r =(float)mt_random_uint32(w->mt) / (float)0xffffffff;
+                    if (r < prob_sum) {
+                        struct unit u = { individual_distribute(probs, r), { x*64, y*64 }, { 0, 0 }, { 0, 0 } };
+                        w->map.tiles[i].units[0] = arrlen(w->units);
+                        arrput(w->units, u);
                     }
                 }
             }
+
+            arrfree(probs);
         }
     }
 }

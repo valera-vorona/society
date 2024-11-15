@@ -374,6 +374,10 @@ JQ_API struct jq_value *jq_read(struct jq_handler *h);
 
 JQ_INLINE struct jq_value *jq_read_buf(struct jq_handler *h, jq_char *src, jq_size sz);
 
+JQ_INLINE jq_size jq_array_length(struct jq_value *v);
+
+JQ_INLINE jq_size jq_object_length(struct jq_value *v);
+
 JQ_API struct jq_value *jq_find(struct jq_value *v, ...);
 
 JQ_INLINE void jq_free(struct jq_value *v);
@@ -1189,6 +1193,16 @@ JQ_INLINE struct jq_value *
 jq_read_buf(struct jq_handler *h, jq_char *src, jq_size sz) {
     jq_append_buf(h, src, sz);
     return jq_read(h);
+}
+
+JQ_INLINE
+jq_size jq_array_length(struct jq_value *v) {
+    return arrlenu(v->value.array);
+}
+
+JQ_INLINE
+jq_size jq_object_length(struct jq_value *v) {
+    return shlenu(v->value.object);
 }
 
 JQ_API struct jq_value *

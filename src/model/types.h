@@ -9,15 +9,7 @@ struct jq_value;
 /*
  * enums 
  */
-/*
-enum tile_t {
-    TT_UNKNOWN = 0,
-    TT_OCEAN,
-    TT_SEA,
-    TT_PLAIN,
-    TT_MAX
-};
-*/
+
 enum resource_t {
     RT_UNKNOWN = 0,
     RT_WOOD
@@ -88,6 +80,7 @@ struct tile_t {
 
 struct tile {
     int type;
+    int units[1];
 };
 
 struct map {
@@ -100,12 +93,20 @@ struct map {
  * unit
  */
 
+struct unit_t {
+    int id;
+    char *name;         /* not strduped */
+    int *tiles;
+    float prob;
+};
+
 struct innate {
     int sociality;
     int leadership;
 };
 
 struct unit {
+    int type;
     struct vec2 coords;
     struct innate innate;
     struct characteristics characteristics;
@@ -159,6 +160,7 @@ struct world {
     float fps;
     struct map map;
     struct resource *recources;
+    struct unit_t *unit_types;
     struct unit *units;
     struct building *buildings;
     struct asset *assets;

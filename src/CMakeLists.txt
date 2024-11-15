@@ -7,6 +7,7 @@ find_package(OpenCV REQUIRED)
 set(SOURCE_EXE
     main.c
     app.h app.c
+    hdronly/jquick.h
     hdronly/nuklear_sdl_renderer.h
     hdronly/hdronly.c
     model/gen.h model/gen.c
