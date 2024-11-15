@@ -15,9 +15,15 @@ int individual_distribute(float *items, float v) {
     return i;
 }
 
-void gen_map(struct map *map, float *gen_parts, struct mt_state *mt, struct vec2 size) {
+void gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     map->size = size;
     map->tiles = malloc(sizeof(struct tile) * size.x * size.y);
+
+    float *gen_parts = NULL;
+    arrsetlen(gen_parts, arrlenu(map->tile_types));
+    for (int i = 0, ie = arrlenu(map->tile_types); i != ie; ++i) {
+        gen_parts[i] = map->tile_types[i].gen_part;
+    }
 
     struct perlin2d perlin;
     perlin2d_init(&perlin, mt);
@@ -27,6 +33,8 @@ void gen_map(struct map *map, float *gen_parts, struct mt_state *mt, struct vec2
             map->tiles[i].type = individual_distribute(gen_parts, r * 100.);
         }
     }
+
+    arrfree(gen_parts);
 }
 
 void gen_units(struct world *w) {
@@ -59,7 +67,7 @@ void gen_units(struct world *w) {
 }
 
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
-    gen_map(&w->map, w->gen_parts, w->mt, size);
+    gen_map(&w->map, w->mt, size);
     gen_units(w);
     /*struct map map;
     struct resource *recources;

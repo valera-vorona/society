@@ -158,7 +158,6 @@ struct world {
     struct mt_state *mt;
     float fps;
     struct map map;
-    float *gen_parts;
     struct resource *recources;
     struct unit *units;
     struct building *buildings;

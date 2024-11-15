@@ -34,7 +34,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     /* Reading tile types */
     w->map.tile_types = NULL;
     val = jq_find(w->json, "tiles", 0);
-    w->gen_parts = NULL;
     if (val && jq_isarray(val)) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
@@ -66,7 +65,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 p = jq_find(v, "gen-part", 0);
                 if (jq_isnumber(p)) {
                     t.gen_part = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
-                    arrput(w->gen_parts, p->type == JQ_V_INTEGER ? p->value.integer : p->value.real);
                 } else {
                     app_warning("'gen-part' is not a number");
                     return 1;
