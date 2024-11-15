@@ -98,14 +98,22 @@ void main_view_draw(struct view *view) {
                 min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y)
             };
 
-            /* drawing map */
+            /* drawing map, units */
             for (int y = frame.y; y < frame.y + frame.h; ++y) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
-                    src.y = 16 + map->tiles[i].type * 72;
+                    struct tile *tile = &map->tiles[i];
+                    src.y = 16 + tile->type * 72;
                     struct nk_image sub = nk_subimage_handle(data->landset.handle, 1176, 1176, src);
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    if (tile->units[0] != ID_NOTHING) {
+                        src.y = 16 + 72;
+                        dest.x += units[tile->units[0]].coords.x % 64; // it should be x * data->dest_size.x / 64
+                        dest.y += units[tile->units[0]].coords.y % 64; // the same but y instead of x
+                        sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
+                        nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    }
                 }
             }
 
@@ -113,17 +121,6 @@ void main_view_draw(struct view *view) {
             hovered_coo.y = frame.y + ((int)mouse_pos->y + left_margin.y) / data->dest_size.y;
             hovered_tile = &map->tiles[hovered_coo.y * map->size.x + hovered_coo.x];
 
-            /* drawing units */
-            src.y = 16 + 72;
-            struct nk_image sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
-            for (int i = 0, ie = arrlenu(units); i < ie; ++i) {
-                struct unit *u = &units[i];
-                dest.x = (u->coords.x - (data->mid.x - half_space.x)) * 64 / data->dest_size.x;
-                dest.y = (u->coords.y - (data->mid.y - half_space.y)) * 64 / data->dest_size.y;
-                //dest.x = u->coords.x*data->dest_size.x/64 - data->mid.x - half_space.x;
-                //dest.y = u->coords.y*data->dest_size.y/64 - data->mid.y - half_space.y;
-                nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
-            }
         }
     }
     nk_end(ctx);

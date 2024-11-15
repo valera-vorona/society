@@ -88,6 +88,11 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
                 struct unit_t t;
+                t.probs = NULL;
+                arrsetlen(t.probs, arrlenu(w->map.tile_types));
+                for (int i = 0, ie = arrlenu(t.probs); i != ie; ++i)
+                    t.probs[i] = .0;
+
                 struct jq_value *p = jq_find(v, "id", 0);
                 if (p && jq_isinteger(p)) {
                     t.id = p->value.integer;
@@ -104,29 +109,30 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     return 1;
                 }
 
-                p = jq_find(v, "tiles", 0);
-                if (p && jq_isarray(p)) {
-                    t.tiles = NULL;
-                    arrsetcap(t.tiles, jq_array_length(p));
-                    struct jq_value *a;
-                    jq_foreach_array(a, p) {
-                        if (jq_isinteger(a)) {
-                            arrput(t.tiles, a->value.integer);
+                p = jq_find(v, "probs", 0);
+                if (p && jq_isobject(p)) {
+                    struct jq_pair *a;
+                    jq_foreach_object(a, p) {
+                        if (jq_isreal(&a->value)) {
+                            int found = 0;
+                            for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
+                                if (!strcmp(a->key, w->map.tile_types[i].name)) {
+                                    t.probs[i] = a->value.value.real;
+                                    found = 1;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                app_warning("No tile type found with name '%s'", a->key);
+                                return 1;
+                            }
                         } else {
-                            app_warning("values of 'unit.tiles' should br integers");
+                            app_warning("values of 'unit.probs' object should be pairs of keys and floats");
                             return 1;
                         }
                     }
                 } else {
-                    app_warning("'tiles' of unit is not found or not an array");
-                    return 1;
-                }
-
-                p = jq_find(v, "prob", 0);
-                if (jq_isnumber(p)) {
-                    t.prob = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
-                } else {
-                    app_warning("'prob' is not a number");
+                    app_warning("'probs' of unit is not found or not an object");
                     return 1;
                 }
 

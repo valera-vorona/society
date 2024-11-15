@@ -3,6 +3,9 @@
 
 #include "rand.h"
 #include <stdint.h>
+#include <limits.h>
+
+#define ID_NOTHING INT_MAX
 
 struct jq_value;
 
@@ -96,8 +99,7 @@ struct map {
 struct unit_t {
     int id;
     char *name;         /* not strduped */
-    int *tiles;
-    float prob;
+    float *probs;
 };
 
 struct innate {
