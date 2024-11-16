@@ -3,6 +3,7 @@
   #include "nuklear_sdl_renderer.h"
 #endif
 #include "app.h"
+#include "view.h"
 #include <malloc.h>
 
 /*
@@ -180,7 +181,7 @@ void new_menu_draw(struct view *view) {
                 NK_EDIT_NO_HORIZONTAL_SCROLL    |
                 NK_EDIT_ALWAYS_INSERT_MODE
                 , data->name_buffer, MAX_NAME_LEN, nk_filter_default) & NK_EDIT_COMMITED) {
-puts(data->name_buffer);
+
             }
 
             nk_layout_row_dynamic(ctx, space, 1);
@@ -190,7 +191,9 @@ puts(data->name_buffer);
             if (nk_button_label(ctx, "Start")) {
                 struct vec2 ws = { 1024, 1024 };
                 app_gen_world(app, ws); //TODO: it's better to move these 2 lines into app code
+                struct vec2 center = { app->cur_world->value.player->coords.x, app->cur_world->value.player->coords.y };
                 app_set_view(app, "main_view");
+                main_view_center_at(&app->cur_view->value, center);
             }
 
             nk_layout_row_dynamic(ctx, space, 1);

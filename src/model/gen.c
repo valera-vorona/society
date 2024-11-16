@@ -52,9 +52,9 @@ void gen_units(struct world *w) {
                 prob_sum += prob;
             }
 
-            float r =(float)mt_random_uint32(w->mt) / (float)0xffffffff;
-            if (r < prob_sum) {;
-                struct unit u = { individual_distribute(probs, r), { x*64, y*64 }, { 0, 0 }, { 0, 0 } };
+            float r = (float)mt_random_uint32(w->mt) / (float)0xffffffff;
+            if (r < prob_sum) {
+                struct unit u = { individual_distribute(probs, r), UF_NONE, { x*64, y*64 }, { 0, 0 }, { 0, 0 } };
                 w->map.tiles[i].units[0] = arrlen(w->units);
                 arrput(w->units, u);
             }
@@ -64,9 +64,16 @@ void gen_units(struct world *w) {
     arrfree(probs);
 }
 
+void gen_unit_flags(struct world *w) {
+    int i = (int)lerp(0, arrlenu(w->units), (float)mt_random_uint32(w->mt) / (float)0xffffffff);
+    w->units[i].flags |= UF_PLAYER;
+    w->player = &w->units[i];
+}
+
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
     gen_units(w);
+    gen_unit_flags(w);
     /*struct map map;
     struct resource *recources;
     struct unit *units;

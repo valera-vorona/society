@@ -96,6 +96,11 @@ struct map {
  * unit
  */
 
+enum unit_flags {
+    UF_NONE     = 0,
+    UF_PLAYER
+};
+
 struct unit_t {
     int id;
     char *name;         /* not strduped */
@@ -109,6 +114,7 @@ struct innate {
 
 struct unit {
     int type;
+    enum unit_flags flags; /* enum unit_flags */
     struct vec2 coords;
     struct innate innate;
     struct characteristics characteristics;
@@ -160,6 +166,7 @@ struct world {
     struct jq_value *json;
     struct mt_state *mt;
     float fps;
+    struct unit *player;
     struct map map;
     struct resource *recources;
     struct unit_t *unit_types;

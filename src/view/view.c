@@ -56,6 +56,12 @@ void main_view_scroll(struct view *view, struct vec2 delta) {
     v->mid.y = trim(0, 100000, v->mid.y + delta.y);
 }
 
+void main_view_center_at(struct view *view, struct vec2 coo) {
+    struct main_view *v = (struct main_view *)view->data;
+    v->mid.x = trim(0, 100000, coo.x);
+    v->mid.y = trim(0, 100000, coo.y);
+}
+
 #define min(a, b) (a) < (b) ? (a) : (b)
 #define max(a, b) (a) > (b) ? (a) : (b)
 
@@ -101,16 +107,28 @@ void main_view_draw(struct view *view) {
             /* drawing map, units */
             for (int y = frame.y; y < frame.y + frame.h; ++y) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
+                    /* drawing tile */
                     struct tile *tile = &map->tiles[i];
                     src.y = 16 + tile->type * 72;
                     struct nk_image sub = nk_subimage_handle(data->landset.handle, 1176, 1176, src);
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+
+                    /* drawing unit if exists on current tile */
                     if (tile->units[0] != ID_NOTHING) {
+                        struct unit *u = &units[tile->units[0]];
+                        dest.x += u->coords.x % 64; // it should be x * data->dest_size.x / 64
+                        dest.y += u->coords.y % 64; // the same but y instead of x
+
+                        /* drawing circle under the player */
+                        if (u->flags & UF_PLAYER) {
+                            src.y = 16 + 72*15;
+                            sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
+                            nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                        }
+
                         src.y = 16 + 72;
-                        dest.x += units[tile->units[0]].coords.x % 64; // it should be x * data->dest_size.x / 64
-                        dest.y += units[tile->units[0]].coords.y % 64; // the same but y instead of x
                         sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
