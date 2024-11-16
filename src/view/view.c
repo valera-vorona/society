@@ -166,6 +166,12 @@ void main_view_draw(struct view *view) {
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                 }
             }
+
+            /* handling mouse in the mini_map_view, now it works incorrecnly */
+            if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_DOUBLE)) {
+                struct vec2 coo = { (frame.x + (int)mouse_pos->x - (win_size.x - 200)) * 64, (frame.y + (int)mouse_pos->y) * 64 };
+                main_view_center_at(view, coo);
+            }
         }
     }
     nk_end(ctx);
@@ -181,7 +187,7 @@ void main_view_draw(struct view *view) {
             snprintf(str, sizeof(str), "Coordinates: %i:%i", hovered_coo.x, hovered_coo.y);
             nk_label(ctx, str, NK_TEXT_LEFT);
         } else {
-            nk_label(ctx, "terrian:" , NK_TEXT_LEFT);
+            nk_label(ctx, "Terrian:" , NK_TEXT_LEFT);
         }
 
     }
