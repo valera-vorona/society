@@ -132,6 +132,7 @@ run(struct app *app) {
             if (*SDL_GetError()) {
                 SDL_Log("Error SDL_WaitEventTimeout: %s", SDL_GetError());
             } else {
+                app_step(app);
                 /* Put animation here */
             }
         }

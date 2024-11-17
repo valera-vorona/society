@@ -121,6 +121,18 @@ struct unit {
 };
 
 /*
+ * ai
+ */
+
+struct ai;
+typedef void (*step)(struct ai *ai);
+
+struct ai {
+    step step;
+    struct unit *unit;
+};
+
+/*
  * building
  */
 
@@ -171,6 +183,7 @@ struct world {
     struct resource *recources;
     struct unit_t *unit_types;
     struct unit *units;
+    struct ai *ais;
     struct building *buildings;
     struct asset *assets;
     struct tool *tools;

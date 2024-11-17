@@ -1,5 +1,6 @@
 #include "gen.h"
 #include "rand.h"
+#include "ai.h"
 #include "stb_ds.h"
 #define JQ_WITH_DOM
 #include "jquick.h"
@@ -15,7 +16,8 @@ int individual_distribute(float *items, float v) {
     return i;
 }
 
-void gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
+static void
+gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     map->size = size;
     map->tiles = malloc(sizeof(struct tile) * size.x * size.y);
 
@@ -38,8 +40,10 @@ void gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     arrfree(gen_parts);
 }
 
-void gen_units(struct world *w) {
+static void 
+gen_units(struct world *w) {
     float *probs = NULL;
+    w->units = NULL;
     arrsetlen(probs, arrlenu(w->unit_types));
 
     for (int y = 0, ye = w->map.size.y; y != ye; ++y) {
@@ -64,16 +68,28 @@ void gen_units(struct world *w) {
     arrfree(probs);
 }
 
-void gen_unit_flags(struct world *w) {
+static void
+gen_unit_flags(struct world *w) {
     int i = (int)lerp(0, arrlenu(w->units), (float)mt_random_uint32(w->mt) / (float)0xffffffff);
     w->units[i].flags |= UF_PLAYER;
     w->player = &w->units[i];
+}
+
+static void
+gen_unit_ais(struct world *w) {
+    w->ais = NULL;
+    arrsetlen(w->ais, arrlenu(w->units));
+    for (int i = 0, ie = arrlenu(w->ais); i != ie; ++i) {
+        w->units[i].flags == UF_PLAYER ? ai_player_init(&w->ais[i]) : ai_human_init(&w->ais[i]);
+        w->ais[i].unit = &w->units[i];
+    }
 }
 
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
     gen_units(w);
     gen_unit_flags(w);
+    gen_unit_ais(w);
     /*struct map map;
     struct resource *recources;
     struct unit *units;

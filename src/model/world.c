@@ -154,3 +154,9 @@ void world_free(struct world *w) {
 
 }
 
+void world_step(struct world *w) {
+    for (int i = 0, ie = arrlenu(w->ais); i != ie; ++i) {
+        w->ais[i].step(&w->ais[i]);
+    }
+}
+

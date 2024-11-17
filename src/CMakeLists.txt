@@ -6,17 +6,18 @@ find_package(OpenCV REQUIRED)
 
 set(SOURCE_EXE
     main.c
-    app.h app.c
+    app.h           app.c
     hdronly/jquick.h
     hdronly/nuklear_sdl_renderer.h
     hdronly/hdronly.c
-    model/gen.h model/gen.c
-    model/rand.h model/rand.c
-    model/serial.h model/serial.c
-    model/world.h model/world.c
-    view/menu.h view/menu.c
+    model/gen.h     model/gen.c
+    model/rand.h    model/rand.c
+    model/serial.h  model/serial.c
+    model/world.h   model/world.c
+    model/ai.h      model/ai.c
+    view/menu.h     view/menu.c
     view/run.c
-    view/view.h view/view.c
+    view/view.h     view/view.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_EXE})

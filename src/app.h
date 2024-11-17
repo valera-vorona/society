@@ -65,6 +65,7 @@ void app_warning(char *format, ...);
 int app_init(struct app *app, uint32_t seed, struct vec2 size);
 void app_free(struct app *app);
 void app_run(struct app *app);
+void app_step(struct app *app);
 void app_quit(struct app *app);
 void set_video_mode(struct app *app, enum video_mode mode);
 void app_set_view(struct app *app, const char *name);

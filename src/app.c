@@ -129,6 +129,10 @@ void app_run(struct app *app) {
     run(app);
 }
 
+void app_step(struct app *app) {
+    world_step(&app->cur_world->value);
+}
+
 void app_quit(struct app *app) {
     app->running = 0;
 }
