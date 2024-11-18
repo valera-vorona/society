@@ -8,6 +8,7 @@
 #define ID_NOTHING INT_MAX
 
 struct jq_value;
+struct world;
 
 /*
  * enums 
@@ -129,6 +130,8 @@ typedef void (*step)(struct ai *ai);
 
 struct ai {
     step step;
+    struct world *world;
+    void *data;
     struct unit *unit;
 };
 

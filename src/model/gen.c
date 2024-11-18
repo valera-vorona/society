@@ -80,6 +80,7 @@ gen_unit_ais(struct world *w) {
     w->ais = NULL;
     arrsetlen(w->ais, arrlenu(w->units));
     for (int i = 0, ie = arrlenu(w->ais); i != ie; ++i) {
+        w->ais[i].world = w;
         w->units[i].flags == UF_PLAYER ? ai_player_init(&w->ais[i]) : ai_human_init(&w->ais[i]);
         w->ais[i].unit = &w->units[i];
     }

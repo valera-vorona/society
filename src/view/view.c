@@ -117,9 +117,13 @@ void main_view_draw(struct view *view) {
 
                     /* drawing unit if exists on current tile */
                     if (tile->units[0] != ID_NOTHING) {
+                        struct nk_rect r1 = { dest.x, dest.y, 16, 24 };
+                        nk_fill_rect(canvas, r1, 0, nk_rgba(0, 255, 0, 255));
                         struct unit *u = &units[tile->units[0]];
-                        dest.x += u->coords.x % 64; // it should be x * data->dest_size.x / 64
-                        dest.y += u->coords.y % 64; // the same but y instead of x
+                        dest.x += (u->coords.x % 64) * data->dest_size.x / 64; // it should be x * data->dest_size.x / 64
+                        dest.y += (u->coords.y % 64) * data->dest_size.y / 64; // the same but y instead of x
+                        struct nk_rect r = { dest.x, dest.y, 16, 24 };
+                        nk_fill_rect(canvas, r, 0, nk_rgba(255, 0, 0, 255));
 
                         /* drawing circle under the player */
                         if (u->flags & UF_PLAYER) {
