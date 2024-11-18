@@ -78,7 +78,55 @@ void main_view_draw(struct view *view) {
     struct tile *hovered_tile = NULL;
     struct vec2 hovered_coo;
 
-    if (nk_begin(ctx, "main_view", nk_rect(0, 0, win_size.x, win_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)) {
+    if (nk_begin(ctx, "tile_view", nk_rect(0, 0, win_size.x, win_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)) {
+        struct nk_rect content = nk_window_get_content_region(ctx);
+        nk_layout_row_dynamic(ctx, content.h - content.y, 1);
+
+        struct nk_command_buffer *canvas = nk_window_get_canvas(ctx);
+
+        struct nk_rect space;                                                       /* widget space */
+        enum nk_widget_layout_states state = nk_widget(&space, ctx);
+        if (state) {
+            struct nk_rect src = { 16, 16, 64, 64 };                                /* source frame in landset */
+            struct nk_rect dest = { 0, 0, data->dest_size.x, data->dest_size.y };   /* destination frame in the widget */
+
+            /* destination from left top corner to the center of the widget */
+            struct vec2 half_space = { (space.w - space.x) / 2, (space.h - space.y) / 2 };
+            data->mid.x = max(data->mid.x, half_space.x);
+            data->mid.y = max(data->mid.y, half_space.y);
+            /* partly shown tile size` in the top left corner */
+            struct vec2 left_margin = { (data->mid.x - half_space.x) % data->dest_size.x, (data->mid.y - half_space.y) % data->dest_size.y };
+            /* frame in the world map to draw */
+            struct rect frame  = {
+                (data->mid.x - half_space.x) / data->dest_size.x,
+                (data->mid.y - half_space.y) / data->dest_size.y,
+                min((space.w - space.x) / data->dest_size.x + 2, map->size.x - frame.x),
+                min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y)
+            };
+
+            /* drawing map */
+            for (int y = frame.y; y < frame.y + frame.h; ++y) {
+                for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
+                    /* drawing tile */
+                    struct tile *tile = &map->tiles[i];
+                    src.y = 16 + tile->type * 72;
+                    struct nk_image sub = nk_subimage_handle(data->landset.handle, 1176, 1176, src);
+                    dest.x = (x - frame.x) * dest.w - left_margin.x;
+                    dest.y = (y - frame.y) * dest.h - left_margin.y;
+                    nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                }
+            }
+
+            hovered_coo.x = frame.x + ((int)mouse_pos->x + left_margin.x) / data->dest_size.x;
+            hovered_coo.y = frame.y + ((int)mouse_pos->y + left_margin.y) / data->dest_size.y;
+            hovered_tile = &map->tiles[hovered_coo.y * map->size.x + hovered_coo.x];
+
+        }
+    }
+    nk_end(ctx);
+
+    nk_style_push_style_item(ctx, &s->fixed_background, nk_style_item_color(nk_rgba(0, 0, 0, 0)));
+    if (nk_begin(ctx, "unit_view", nk_rect(0, 0, win_size.x, win_size.y), NK_WINDOW_NO_SCROLLBAR)) {
         struct nk_rect content = nk_window_get_content_region(ctx);
         nk_layout_row_dynamic(ctx, content.h - content.y, 1);
 
@@ -107,18 +155,13 @@ void main_view_draw(struct view *view) {
             /* drawing map, units */
             for (int y = frame.y; y < frame.y + frame.h; ++y) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
-                    /* drawing tile */
                     struct tile *tile = &map->tiles[i];
-                    src.y = 16 + tile->type * 72;
-                    struct nk_image sub = nk_subimage_handle(data->landset.handle, 1176, 1176, src);
+                    struct nk_image sub;
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
-                    nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
 
                     /* drawing unit if exists on current tile */
                     if (tile->units[0] != ID_NOTHING) {
-                        struct nk_rect r1 = { dest.x, dest.y, 16, 24 };
-                        nk_fill_rect(canvas, r1, 0, nk_rgba(0, 255, 0, 255));
                         struct unit *u = &units[tile->units[0]];
                         dest.x += (u->coords.x % 64) * data->dest_size.x / 64; // it should be x * data->dest_size.x / 64
                         dest.y += (u->coords.y % 64) * data->dest_size.y / 64; // the same but y instead of x
@@ -138,14 +181,10 @@ void main_view_draw(struct view *view) {
                     }
                 }
             }
-
-            hovered_coo.x = frame.x + ((int)mouse_pos->x + left_margin.x) / data->dest_size.x;
-            hovered_coo.y = frame.y + ((int)mouse_pos->y + left_margin.y) / data->dest_size.y;
-            hovered_tile = &map->tiles[hovered_coo.y * map->size.x + hovered_coo.x];
-
         }
     }
     nk_end(ctx);
+    nk_style_pop_style_item(ctx);
 
     if (nk_begin(ctx, "mini_map_view", nk_rect(win_size.x - 200, 0, 200, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE)) {
         struct nk_rect content = nk_window_get_content_region(ctx);
