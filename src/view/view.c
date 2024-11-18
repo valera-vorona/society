@@ -74,7 +74,15 @@ void main_view_draw(struct view *view) {
     struct unit *units = app->cur_world->value.units;
     struct vec2 win_size = get_win_size(app);
 
+    enum nk_widget_layout_states state;
     struct nk_vec2 *mouse_pos = &ctx->input.mouse.pos;
+    struct nk_rect space;                                                       /* widget space */
+    struct nk_rect src = { 16, 16, 64, 64 };                                /* source frame in landset */
+    struct nk_rect dest = { 0, 0, data->dest_size.x, data->dest_size.y };   /* destination frame in the widget */
+    struct vec2 left_margin;
+    struct vec2 half_space;
+    struct rect frame;
+
     struct tile *hovered_tile = NULL;
     struct vec2 hovered_coo;
 
@@ -83,26 +91,25 @@ void main_view_draw(struct view *view) {
         nk_layout_row_dynamic(ctx, content.h - content.y, 1);
 
         struct nk_command_buffer *canvas = nk_window_get_canvas(ctx);
-
-        struct nk_rect space;                                                       /* widget space */
-        enum nk_widget_layout_states state = nk_widget(&space, ctx);
+        state = nk_widget(&space, ctx);
         if (state) {
-            struct nk_rect src = { 16, 16, 64, 64 };                                /* source frame in landset */
-            struct nk_rect dest = { 0, 0, data->dest_size.x, data->dest_size.y };   /* destination frame in the widget */
-
             /* destination from left top corner to the center of the widget */
-            struct vec2 half_space = { (space.w - space.x) / 2, (space.h - space.y) / 2 };
-            data->mid.x = max(data->mid.x, half_space.x);
-            data->mid.y = max(data->mid.y, half_space.y);
+            half_space.x    = (space.w - space.x) / 2;
+            half_space.y    = (space.h - space.y) / 2;
+            data->mid.x     = max(data->mid.x, half_space.x);
+            data->mid.y     = max(data->mid.y, half_space.y);
             /* partly shown tile size` in the top left corner */
-            struct vec2 left_margin = { (data->mid.x - half_space.x) % data->dest_size.x, (data->mid.y - half_space.y) % data->dest_size.y };
+            left_margin.x   = (data->mid.x - half_space.x) % data->dest_size.x;
+            left_margin.y   = (data->mid.y - half_space.y) % data->dest_size.y;
             /* frame in the world map to draw */
-            struct rect frame  = {
-                (data->mid.x - half_space.x) / data->dest_size.x,
-                (data->mid.y - half_space.y) / data->dest_size.y,
-                min((space.w - space.x) / data->dest_size.x + 2, map->size.x - frame.x),
-                min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y)
-            };
+            frame.x         = (data->mid.x - half_space.x) / data->dest_size.x;
+            frame.y         = (data->mid.y - half_space.y) / data->dest_size.y;
+            frame.w         = min((space.w - space.x) / data->dest_size.x + 2, map->size.x - frame.x);
+            frame.h         = min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y);
+            /* hovwred coords and tile */
+            hovered_coo.x = frame.x + ((int)mouse_pos->x + left_margin.x) / data->dest_size.x;
+            hovered_coo.y = frame.y + ((int)mouse_pos->y + left_margin.y) / data->dest_size.y;
+            hovered_tile = &map->tiles[hovered_coo.y * map->size.x + hovered_coo.x];
 
             /* drawing map */
             for (int y = frame.y; y < frame.y + frame.h; ++y) {
@@ -117,10 +124,6 @@ void main_view_draw(struct view *view) {
                 }
             }
 
-            hovered_coo.x = frame.x + ((int)mouse_pos->x + left_margin.x) / data->dest_size.x;
-            hovered_coo.y = frame.y + ((int)mouse_pos->y + left_margin.y) / data->dest_size.y;
-            hovered_tile = &map->tiles[hovered_coo.y * map->size.x + hovered_coo.x];
-
         }
     }
     nk_end(ctx);
@@ -132,26 +135,8 @@ void main_view_draw(struct view *view) {
 
         struct nk_command_buffer *canvas = nk_window_get_canvas(ctx);
 
-        struct nk_rect space;                                                       /* widget space */
-        enum nk_widget_layout_states state = nk_widget(&space, ctx);
-        if (state) {
-            struct nk_rect src = { 16, 16, 64, 64 };                                /* source frame in landset */
-            struct nk_rect dest = { 0, 0, data->dest_size.x, data->dest_size.y };   /* destination frame in the widget */
-
-            /* destination from left top corner to the center of the widget */
-            struct vec2 half_space = { (space.w - space.x) / 2, (space.h - space.y) / 2 };
-            data->mid.x = max(data->mid.x, half_space.x);
-            data->mid.y = max(data->mid.y, half_space.y);
-            /* partly shown tile size` in the top left corner */
-            struct vec2 left_margin = { (data->mid.x - half_space.x) % data->dest_size.x, (data->mid.y - half_space.y) % data->dest_size.y };
-            /* frame in the world map to draw */
-            struct rect frame  = {
-                (data->mid.x - half_space.x) / data->dest_size.x,
-                (data->mid.y - half_space.y) / data->dest_size.y,
-                min((space.w - space.x) / data->dest_size.x + 2, map->size.x - frame.x),
-                min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y)
-            };
-
+        enum nk_widget_layout_states state2 = nk_widget(&space, ctx);
+        if (state && state2) {
             /* drawing map, units */
             for (int y = frame.y; y < frame.y + frame.h; ++y) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
