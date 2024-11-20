@@ -18,6 +18,18 @@ struct step {
 static float get_passability(struct unit *u, struct tile *t);
 static struct step *arrputsorted(struct step *a, struct step v);
 
+void
+path_init(struct path *p) {
+    p->steps = NULL;
+}
+
+void
+path_free(struct path *p) {
+    if (p->steps) {
+        arrfree(p->steps);
+        p->steps = NULL;
+    }
+}
 
 /* TODO: function find_path is too inafficient and should be optimized!
  * 1. Structs current_v, current are copyed but shouldn't;
@@ -158,12 +170,12 @@ found:
                         close[i].neighbors[j].x == close[k].coo.x &&
                         close[i].neighbors[j].y == close[k].coo.y) {
                         struct vec2 coo = { close[i].coo.x, close[i].coo.y };
-                        arrput(rv.step, coo);
+                        arrput(rv.steps, coo);
                     }
                 }
             }
         }
-        arrput(rv.step, dest);
+        arrput(rv.steps, dest);
     }
 
     arrfree(close);

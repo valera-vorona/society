@@ -18,9 +18,11 @@ struct main_view {
     struct vec2 mid;            /* pixel that should be shown in the middle of the map */
     struct vec2 dest_size;      /* size of shown tile */
     enum {
-        AM_NONE =0,
+        AM_NONE = 0,
         AM_WALK
     } action_mode;
+    struct path path;
+    struct vec2 prev_hovered_coo;
     struct nk_image landset;
     struct nk_image unitset;
 };
@@ -33,6 +35,9 @@ void main_view_init(struct view *view) {
     data->zoom = data->mid.x = data->mid.y = 0;
     main_view_zoom(view, 0);
     data->action_mode = AM_WALK;
+    path_init(&data->path);
+    data->prev_hovered_coo.x = -1;
+    data->prev_hovered_coo.y = -1;
     data->landset = app_get_image(view->app, "landset");
     data->unitset = app_get_image(view->app, "unitset");
 }
@@ -133,10 +138,10 @@ void main_view_draw(struct view *view) {
             }
 
             /* handling mouse press the map_view */
-            if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_RIGHT)) {
-                if (data->action_mode == AM_WALK) {
-                    find_path(w, player, hovered_coo);
-                }
+            if (data->action_mode == AM_WALK && (data->prev_hovered_coo.x != hovered_coo.x || data->prev_hovered_coo.y != hovered_coo.y)) {
+                if (data->path.steps)
+                    path_free(&data->path);
+                data->path = find_path(w, player, hovered_coo);
             }
         }
     }
@@ -234,5 +239,8 @@ void main_view_draw(struct view *view) {
 
     }
     nk_end(ctx);
+
+    data->prev_hovered_coo.x = hovered_coo.x;
+    data->prev_hovered_coo.y = hovered_coo.y;
 }
 
