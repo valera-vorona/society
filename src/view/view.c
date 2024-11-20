@@ -58,8 +58,8 @@ void main_view_scroll(struct view *view, struct vec2 delta) {
 
 void main_view_center_at(struct view *view, struct vec2 coo) {
     struct main_view *v = (struct main_view *)view->data;
-    v->mid.x = trim(0, 100000, coo.x);
-    v->mid.y = trim(0, 100000, coo.y);
+    v->mid.x = trim(0, 1000000, coo.x);
+    v->mid.y = trim(0, 1000000, coo.y);
 }
 
 #define min(a, b) (a) < (b) ? (a) : (b)
@@ -76,7 +76,7 @@ void main_view_draw(struct view *view) {
 
     enum nk_widget_layout_states state;
     struct nk_vec2 *mouse_pos = &ctx->input.mouse.pos;
-    struct nk_rect space;                                                       /* widget space */
+    struct nk_rect space;                                                   /* widget space */
     struct nk_rect src = { 16, 16, 64, 64 };                                /* source frame in landset */
     struct nk_rect dest = { 0, 0, data->dest_size.x, data->dest_size.y };   /* destination frame in the widget */
     struct vec2 left_margin;
@@ -98,12 +98,12 @@ void main_view_draw(struct view *view) {
             half_space.y    = (space.h - space.y) / 2;
             data->mid.x     = max(data->mid.x, half_space.x);
             data->mid.y     = max(data->mid.y, half_space.y);
-            /* partly shown tile size` in the top left corner */
+            /* partly shown tile size in the top left corner */
             left_margin.x   = (data->mid.x - half_space.x) % data->dest_size.x;
             left_margin.y   = (data->mid.y - half_space.y) % data->dest_size.y;
             /* frame in the world map to draw */
-            frame.x         = (data->mid.x - half_space.x) / data->dest_size.x;
-            frame.y         = (data->mid.y - half_space.y) / data->dest_size.y;
+            frame.x         = data->mid.x / 64 - half_space.x / data->dest_size.x;
+            frame.y         = data->mid.y / 64 - half_space.y / data->dest_size.y;
             frame.w         = min((space.w - space.x) / data->dest_size.x + 2, map->size.x - frame.x);
             frame.h         = min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y);
             /* hovwred coords and tile */

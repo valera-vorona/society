@@ -13,8 +13,8 @@ struct step {
     struct vec2 neighbors[8];   /* neighbors */
 };
 
-float get_passability(struct unit *u, struct tile *t);
-void arrputsorted(struct step *a, struct step v);
+static float get_passability(struct unit *u, struct tile *t);
+static void arrputsorted(struct step *a, struct step v);
 
 struct path
 find_path(struct world *w, struct unit *u, struct vec2 dest) {
@@ -148,7 +148,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
     return rv;
 }
 
-float
+static float
 get_passability(struct unit *u, struct tile *t) {
     return .5;
 }
@@ -156,7 +156,8 @@ get_passability(struct unit *u, struct tile *t) {
 /* it sorts struct step *s array from more to less f then from less to more g
  * so that the least item lays in the end of array
  */
-void arrputsorted(struct step *a, struct step v) {
+static void
+arrputsorted(struct step *a, struct step v) {
     size_t b = 0;
     size_t e = arrlenu(a);
 
