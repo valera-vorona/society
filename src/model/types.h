@@ -181,7 +181,7 @@ struct world {
     struct jq_value *json;
     struct mt_state *mt;
     float fps;
-    struct unit *player;
+    struct ai *player_ai;
     struct map map;
     struct resource *recources;
     struct unit_t *unit_types;

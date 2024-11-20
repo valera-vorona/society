@@ -72,7 +72,6 @@ static void
 gen_unit_flags(struct world *w) {
     int i = (int)lerp(0, arrlenu(w->units), (float)mt_random_uint32(w->mt) / (float)0xffffffff);
     w->units[i].flags |= UF_PLAYER;
-    w->player = &w->units[i];
 }
 
 static void
@@ -81,7 +80,13 @@ gen_unit_ais(struct world *w) {
     arrsetlen(w->ais, arrlenu(w->units));
     for (int i = 0, ie = arrlenu(w->ais); i != ie; ++i) {
         w->ais[i].world = w;
-        w->units[i].flags == UF_PLAYER ? ai_player_init(&w->ais[i]) : ai_human_init(&w->ais[i]);
+        if (w->units[i].flags == UF_PLAYER) {
+            ai_player_init(&w->ais[i]);
+            w->player_ai = &w->ais[i];
+        } else {
+            ai_human_init(&w->ais[i]);
+        }
+
         w->ais[i].unit = &w->units[i];
     }
 }

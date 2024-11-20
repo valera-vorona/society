@@ -191,7 +191,7 @@ void new_menu_draw(struct view *view) {
             if (nk_button_label(ctx, "Start")) {
                 struct vec2 ws = { 1024, 1024 };
                 app_gen_world(app, ws); //TODO: it's better to move these 2 lines into app code
-                struct vec2 center = { app->cur_world->value.player->coords.x, app->cur_world->value.player->coords.y };
+                struct vec2 center = { app->cur_world->value.player_ai->unit->coords.x, app->cur_world->value.player_ai->unit->coords.y };
                 app_set_view(app, "main_view");
                 main_view_center_at(&app->cur_view->value, center);
             }

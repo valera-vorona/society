@@ -3,6 +3,7 @@
   #include "nuklear_sdl_renderer.h"
 #endif
 #include "app.h"
+#include "path.h"
 #include "stb_ds.h"
 #include <malloc.h>
 
@@ -16,6 +17,10 @@ struct main_view {
     int zoom;
     struct vec2 mid;            /* pixel that should be shown in the middle of the map */
     struct vec2 dest_size;      /* size of shown tile */
+    enum {
+        AM_NONE =0,
+        AM_WALK
+    } action_mode;
     struct nk_image landset;
     struct nk_image unitset;
 };
@@ -27,6 +32,7 @@ void main_view_init(struct view *view) {
     struct main_view *data = (struct main_view *)view->data;
     data->zoom = data->mid.x = data->mid.y = 0;
     main_view_zoom(view, 0);
+    data->action_mode = AM_WALK;
     data->landset = app_get_image(view->app, "landset");
     data->unitset = app_get_image(view->app, "unitset");
 }
@@ -67,11 +73,13 @@ void main_view_center_at(struct view *view, struct vec2 coo) {
 
 void main_view_draw(struct view *view) {
     struct app *app = view->app;
+    struct world *w = &app->cur_world->value;
     struct nk_context *ctx = app->ctx;
     struct nk_style_window *s = &ctx->style.window;
     struct main_view *data = (struct main_view *)view->data;
-    struct map *map = &app->cur_world->value.map;
-    struct unit *units = app->cur_world->value.units;
+    struct map *map = &w->map;
+    struct unit *units = w->units;
+    struct unit *player = w->player_ai->unit;
     struct vec2 win_size = get_win_size(app);
 
     enum nk_widget_layout_states state;
@@ -126,7 +134,9 @@ void main_view_draw(struct view *view) {
 
             /* handling mouse press the map_view */
             if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_RIGHT)) {
-
+                if (data->action_mode == AM_WALK) {
+                    find_path(w, player, hovered_coo);
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     w->mt = mt;
 
     w->units = NULL;
+    w->player_ai = NULL;
 
     /* Reading world json file */
     w->json = read_json(fname);

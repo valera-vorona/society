@@ -2,6 +2,8 @@
 #include "stb_ds.h"
 #include <math.h>
 
+#include <stdio.h>
+
 #define max(a, b) (a) > (b) ? (a) : (b)
 #define calc_h(src, dest) max(abs(src.x - dest.x), abs(src.y - dest.y))
 
@@ -14,20 +16,21 @@ struct step {
 };
 
 static float get_passability(struct unit *u, struct tile *t);
-static void arrputsorted(struct step *a, struct step v);
+static struct step *arrputsorted(struct step *a, struct step v);
 
 struct path
 find_path(struct world *w, struct unit *u, struct vec2 dest) {
-    /* src tile is u->coords, dest tile is dest.
-     * we swap src and dest not to reverse the result path
-     */
     struct path rv = { NULL };
     struct map *map = &w->map;
     struct tile *tiles = map->tiles;
     struct step *open = NULL;
     struct step *close = NULL;
 
-    int h = calc_h(u->coords, dest);
+    /* src tile is u->coords / 64, dest tile is dest.
+     * we swap src and dest not to reverse the result path
+     */
+    struct vec2 finish = { u->coords.x / 64, u->coords.y / 64 };
+    int h = calc_h(dest, finish);
     struct step start = { dest, .0, h, 0 };
 
     arrsetcap(open, h * 2);
@@ -43,11 +46,11 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
         /* moving the step with the least f, then highest g from open to close */
         arrput(close, arrpop(open));
 
-        /* looking for the current coo in the close list */
+        /* looking for the finish coo in the close list */
         for (int j = 0, je = arrlenu(close); j != je; ++j) {
-            if (dest.x == close[j].coo.x && dest.y == close[j].coo.y) {
+            if (finish.x == close[j].coo.x && finish.y == close[j].coo.y) {
                 /* path is found */
-                break;
+                goto found;
             }
         }
 
@@ -117,14 +120,16 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
                 }
             }
             if (!s_found) {
-                struct step step = { neighbor, current->g + 1, calc_h(u->coords, dest), 0 };
-                arrputsorted(open, step);
-            } else if (current->g + 1 + calc_h(neighbor, dest) < s_found->g + s_found->h) {
+                struct step step = { neighbor, current->g + 1, calc_h(neighbor, finish), 0 };
+                open = arrputsorted(open, step);
+            } else if (current->g + 1 + calc_h(neighbor, finish) < s_found->g + s_found->h) {
                 s_found->g = current->g + 1;
             }
         }
     }
 
+found:
+printf("close len: %lu, open len: %lu\n", arrlenu(close), arrlenu(open));
     arrfree(open);
     /* Backtracking
      * filling in the path
@@ -145,6 +150,10 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
 
     arrfree(close);
 
+puts("path:");
+    for (int i = 0, ie = arrlenu(rv.step); i != ie; ++i)
+        printf("%i:%i\n", rv.step[i].x, rv.step[i].y);
+
     return rv;
 }
 
@@ -156,20 +165,22 @@ get_passability(struct unit *u, struct tile *t) {
 /* it sorts struct step *s array from more to less f then from less to more g
  * so that the least item lays in the end of array
  */
-static void
+static struct step *
 arrputsorted(struct step *a, struct step v) {
     size_t b = 0;
     size_t e = arrlenu(a);
-
     while (b != e) {
         size_t mid = b + (e - b) / 2;
         float f[] = { v.g + v.h, a[mid].g + a[mid].h };
-        if (f[0] < f[1] || (f[0] == f[1] && v.g > a[mid].g))
-            b = mid;
-        else
+        if (f[0] < f[1] || (f[0] == f[1] && v.g > a[mid].g)) {
+            b = mid + 1;
+        } else {
             e = mid;
+        }
     }
 
     arrins(a, b, v);
+
+    return a;
 }
 
