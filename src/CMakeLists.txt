@@ -14,6 +14,7 @@ set(SOURCE_EXE
     model/rand.h    model/rand.c
     model/serial.h  model/serial.c
     model/world.h   model/world.c
+    model/path.h    model/path.c
     model/ai.h      model/ai.c
     view/menu.h     view/menu.c
     view/run.c

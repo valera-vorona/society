@@ -124,6 +124,10 @@ void main_view_draw(struct view *view) {
                 }
             }
 
+            /* handling mouse press the map_view */
+            if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_RIGHT)) {
+
+            }
         }
     }
     nk_end(ctx);
