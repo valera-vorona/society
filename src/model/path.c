@@ -18,6 +18,14 @@ struct step {
 static float get_passability(struct unit *u, struct tile *t);
 static struct step *arrputsorted(struct step *a, struct step v);
 
+
+/* TODO: function find_path is too inafficient and should be optimized!
+ * 1. Structs current_v, current are copyed but shouldn't;
+ * 2. Open array is kept ordered, I can use this to find data in it
+ *    instead of iterating;
+ * 3. close array is not ordered, I should check if I can turn it to a hash
+ *    to ease the finding prosess;
+ */
 struct path
 find_path(struct world *w, struct unit *u, struct vec2 dest) {
     struct path rv = { NULL };
@@ -25,6 +33,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
     struct tile *tiles = map->tiles;
     struct step *open = NULL;
     struct step *close = NULL;
+    int path_found = 0;
 
     /* src tile is u->coords / 64, dest tile is dest.
      * we swap src and dest not to reverse the result path
@@ -40,7 +49,9 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
 
     while (arrlenu(open)) {
         int num = 0;
-        struct step *current = &open[ arrlenu(open) - 1];
+        /* TODO: I should get rid of copying here */
+        struct step current_v = open[ arrlenu(open) - 1];
+        struct step *current = &current_v;
         struct vec2 coo = current->coo;
 
         /* moving the step with the least f, then highest g from open to close */
@@ -50,6 +61,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
         for (int j = 0, je = arrlenu(close); j != je; ++j) {
             if (finish.x == close[j].coo.x && finish.y == close[j].coo.y) {
                 /* path is found */
+                path_found = 1;
                 goto found;
             }
         }
@@ -97,6 +109,10 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
 
         current->neighbors_num = num;
 
+        /* TODO: I should get rid of copying here */
+        close[ arrlenu(close) - 1].neighbors_num = current->neighbors_num;
+        memcpy(&close[ arrlenu(close) - 1].neighbors, &current->neighbors, sizeof(struct vec2) * 8);
+
         /* for each neighbor */
         for (int i = 0; i != num; ++i) {
             struct vec2 neighbor = current->neighbors[i];
@@ -129,30 +145,28 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
     }
 
 found:
-printf("close len: %lu, open len: %lu\n", arrlenu(close), arrlenu(open));
     arrfree(open);
     /* Backtracking
      * filling in the path
      * putting neighbors if only their g < the current one and if they are in the close list
      */
-    for (int i = 0, ie = arrlenu(close); i != ie; ++i) {
-        for (int j = 0, je = close[i].neighbors_num; j != je; ++j) {
-            for (int k = 0, ke = arrlenu(close); k != ke; ++k) {
-                if (close[k].g < close[i].g &&
-                    close[i].neighbors[j].x == close[k].coo.x &&
-                    close[i].neighbors[j].y == close[k].coo.y) {
-                    struct vec2 coo = { close[i].coo.x, close[i].coo.y };
-                    arrput(rv.step, coo);
+    if (path_found) {
+        for (int i = arrlenu(close) - 1, ie = 0; i >= ie; --i) {
+            for (int j = 0, je = close[i].neighbors_num; j != je; ++j) {
+                for (int k = 0, ke = arrlenu(close); k != ke; ++k) {
+                    if (close[k].g < close[i].g &&
+                        close[i].neighbors[j].x == close[k].coo.x &&
+                        close[i].neighbors[j].y == close[k].coo.y) {
+                        struct vec2 coo = { close[i].coo.x, close[i].coo.y };
+                        arrput(rv.step, coo);
+                    }
                 }
             }
         }
+        arrput(rv.step, dest);
     }
 
     arrfree(close);
-
-puts("path:");
-    for (int i = 0, ie = arrlenu(rv.step); i != ie; ++i)
-        printf("%i:%i\n", rv.step[i].x, rv.step[i].y);
 
     return rv;
 }
