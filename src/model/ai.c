@@ -21,47 +21,8 @@ void task_init(struct task *t) {
 }
 
 /*
- * player ai
+ * general unit ai
  */
-
-void ai_player_init(struct ai *ai);
-static void ai_player_step(struct ai *ai);
-
-void
-ai_player_init(struct ai *ai) {
-    ai->step = ai_player_step;
-}
-
-static void
-ai_player_step(struct ai *ai) {
-
-}
-
-/*
- * human ai
- */
-
-void ai_human_init(struct ai *ai);
-static void ai_human_step(struct ai *ai);
-
-void
-ai_human_init(struct ai *ai) {
-    ai->step = ai_human_step;
-    action_init(&ai->action);
-}
-
-static void
-gen_rand_action(struct ai *ai, struct action *a) {
-    a->type = mt_random_uint32(ai->world->mt) % (A_MAX - 1) + 1;
-    switch (a->type) {
-    case A_STAY:    a->act.stay.cnt = mt_random_uint32(ai->world->mt) % 60;
-                    break;
-
-    case A_WALK:    a->act.walk.to.x = trim(0, ai->world->map.size.x * 64 - 1, ai->unit->coords.x + ((mt_random_uint32(ai->world->mt) % 3) - 1) * 64);
-                    a->act.walk.to.y = trim(0, ai->world->map.size.y * 64 - 1, ai->unit->coords.y + ((mt_random_uint32(ai->world->mt) % 3) - 1) * 64);
-                    break;
-    }
-}
 
 static void
 unit_move(struct world *w, struct unit *u, struct vec2 dir) {
@@ -78,9 +39,22 @@ unit_move(struct world *w, struct unit *u, struct vec2 dir) {
 }
 
 static void
-ai_human_step(struct ai *ai) {;
+gen_rand_action(struct ai *ai, struct action *a) {
+    a->type = mt_random_uint32(ai->world->mt) % (A_MAX - 1) + 1;
+    switch (a->type) {
+    case A_STAY:    a->act.stay.cnt = mt_random_uint32(ai->world->mt) % 60;
+                    break;
+
+    case A_WALK:    a->act.walk.to.x = trim(0, ai->world->map.size.x * 64 - 1, ai->unit->coords.x + ((mt_random_uint32(ai->world->mt) % 3) - 1) * 64);
+                    a->act.walk.to.y = trim(0, ai->world->map.size.y * 64 - 1, ai->unit->coords.y + ((mt_random_uint32(ai->world->mt) % 3) - 1) * 64);
+                    break;
+    }
+}
+
+static void
+ai_unit_step(struct ai *ai) {
     switch (ai->action.type) {
-    case A_NOTHING: gen_rand_action(ai, &ai->action);
+    case A_NOTHING:
                     break;
 
     case A_STAY:    if (--ai->action.act.stay.cnt <= 0)
@@ -101,5 +75,42 @@ ai_human_step(struct ai *ai) {;
                     }
                     break;
     }
+}
+
+/*
+ * player ai
+ */
+
+void ai_player_init(struct ai *ai);
+static void ai_player_step(struct ai *ai);
+
+void
+ai_player_init(struct ai *ai) {
+    ai->step = ai_player_step;
+}
+
+static void
+ai_player_step(struct ai *ai) {
+
+}
+
+/*
+ * human ai
+ */
+
+static void ai_human_step(struct ai *ai);
+
+void
+ai_human_init(struct ai *ai) {
+    ai->step = ai_human_step;
+    action_init(&ai->action);
+}
+
+static void
+ai_human_step(struct ai *ai) {
+    if (ai->action.type == A_NOTHING)
+        gen_rand_action(ai, &ai->action);
+
+    ai_unit_step(ai);
 }
 
