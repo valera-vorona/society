@@ -4,6 +4,7 @@
 #endif
 #include "app.h"
 #include "path.h"
+#include "ai.h"
 #include "stb_ds.h"
 #include <malloc.h>
 
@@ -146,8 +147,11 @@ void main_view_draw(struct view *view) {
                 if (data->path.steps)
                     path_free(&data->path);
                 data->path = find_path(w, player, hovered_coo);
-                if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_LEFT)) {
+            }
 
+            if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_LEFT)) {
+                if (!path_is_free(data->path)) {
+                    ai_add_task_from_path(w->player_ai, data->path);
                 }
             }
         }

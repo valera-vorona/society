@@ -151,12 +151,18 @@ struct action {
     } act;
 };
 
+struct task {
+    int i;                  /* iterator */
+    struct action *actions; /* actions array */
+};
+
+
 struct ai {
     step step;
     struct world *world;
     void *data;
     struct unit *unit;
-    struct action action;
+    struct task task;
 };
 
 /*
