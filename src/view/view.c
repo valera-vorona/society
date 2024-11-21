@@ -115,11 +115,15 @@ void main_view_draw(struct view *view) {
             left_margin.x   = (data->mid.x - half_space.x) % data->dest_size.x;
             left_margin.y   = (data->mid.y - half_space.y) % data->dest_size.y;
             /* frame in the world map to draw */
-            frame.x         = data->mid.x / 64 - half_space.x / data->dest_size.x;
-            frame.y         = data->mid.y / 64 - half_space.y / data->dest_size.y;
+            /* TODO: these two lines zoom correctly but scroll incorrectly */
+            //frame.x         = data->mid.x / 64 - half_space.x / data->dest_size.x;
+            //frame.y         = data->mid.y / 64 - half_space.y / data->dest_size.y;
+            /* these two lines zoom incorrectly but scroll correctly */
+            frame.x         = (data->mid.x - half_space.x) / data->dest_size.x;
+            frame.y         = (data->mid.y - half_space.y) / data->dest_size.y;
             frame.w         = min((space.w - space.x) / data->dest_size.x + 2, map->size.x - frame.x);
             frame.h         = min((space.h - space.y) / data->dest_size.y + 2, map->size.y - frame.y);
-            /* hovwred coords and tile */
+            /* hovered  coords and tile */
             hovered_coo.x = frame.x + ((int)mouse_pos->x + left_margin.x) / data->dest_size.x;
             hovered_coo.y = frame.y + ((int)mouse_pos->y + left_margin.y) / data->dest_size.y;
             hovered_tile = &map->tiles[hovered_coo.y * map->size.x + hovered_coo.x];
@@ -142,6 +146,9 @@ void main_view_draw(struct view *view) {
                 if (data->path.steps)
                     path_free(&data->path);
                 data->path = find_path(w, player, hovered_coo);
+                if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_LEFT)) {
+
+                }
             }
         }
     }

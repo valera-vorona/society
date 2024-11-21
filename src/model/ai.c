@@ -2,33 +2,6 @@
 #include <stddef.h>
 #include <malloc.h>
 
-/*
- * actions
- */
-
-enum action_t {
-    A_NOTHING   = 0,
-    A_STAY,
-    A_WALK,
-    A_MAX
-};
-
-struct walk {
-    struct vec2 to;
-};
-
-struct stay {
-    int cnt;
-};
-
-struct action {
-    enum action_t type;
-    union {
-        struct stay stay;
-        struct walk walk;
-    } act;
-};
-
 void action_init(struct action *a) {
     a->type = A_NOTHING;
 }
@@ -68,20 +41,13 @@ ai_player_step(struct ai *ai) {
  * human ai
  */
 
-struct human_ai {
-    struct action action;
-};
-
 void ai_human_init(struct ai *ai);
 static void ai_human_step(struct ai *ai);
 
 void
 ai_human_init(struct ai *ai) {
     ai->step = ai_human_step;
-    ai->data = malloc(sizeof(struct human_ai));
-    struct human_ai *human = (struct human_ai *)ai->data;
-    action_init(&human->action);
-
+    action_init(&ai->action);
 }
 
 static void
@@ -113,25 +79,23 @@ unit_move(struct world *w, struct unit *u, struct vec2 dir) {
 
 static void
 ai_human_step(struct ai *ai) {;
-    struct human_ai *human_ai = (struct human_ai *)ai->data;
-    struct action *a = &human_ai->action;
-    switch (a->type) {
-    case A_NOTHING: gen_rand_action(ai, a);
+    switch (ai->action.type) {
+    case A_NOTHING: gen_rand_action(ai, &ai->action);
                     break;
 
-    case A_STAY:    if (--a->act.stay.cnt <= 0)
-                        a->type = A_NOTHING;
+    case A_STAY:    if (--ai->action.act.stay.cnt <= 0)
+                        ai->action.type = A_NOTHING;
                     break;
 
-    case A_WALK:    if (ai->unit->coords.x == a->act.walk.to.x && ai->unit->coords.y == a->act.walk.to.y) {
-                        a->type = A_NOTHING;
+    case A_WALK:    if (ai->unit->coords.x == ai->action.act.walk.to.x && ai->unit->coords.y == ai->action.act.walk.to.y) {
+                        ai->action.type = A_NOTHING;
                     } else {
                         struct vec2 dir = { 0, 0 };
-                        if (ai->unit->coords.x < a->act.walk.to.x) dir.x = 1;
-                        else if (ai->unit->coords.x > a->act.walk.to.x) dir.x = -1;
+                        if (ai->unit->coords.x < ai->action.act.walk.to.x) dir.x = 1;
+                        else if (ai->unit->coords.x > ai->action.act.walk.to.x) dir.x = -1;
 
-                        if (ai->unit->coords.y < a->act.walk.to.y) dir.y = 1;
-                        else if (ai->unit->coords.y > a->act.walk.to.y) dir.y = -1;
+                        if (ai->unit->coords.y < ai->action.act.walk.to.y) dir.y = 1;
+                        else if (ai->unit->coords.y > ai->action.act.walk.to.y) dir.y = -1;
 
                         unit_move(ai->world, ai->unit, dir);
                     }

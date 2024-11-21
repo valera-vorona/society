@@ -128,11 +128,35 @@ struct unit {
 struct ai;
 typedef void (*step)(struct ai *ai);
 
+enum action_t {
+    A_NOTHING   = 0,
+    A_STAY,
+    A_WALK,
+    A_MAX
+};
+
+struct walk {
+    struct vec2 to;
+};
+
+struct stay {
+    int cnt;
+};
+
+struct action {
+    enum action_t type;
+    union {
+        struct stay stay;
+        struct walk walk;
+    } act;
+};
+
 struct ai {
     step step;
     struct world *world;
     void *data;
     struct unit *unit;
+    struct action action;
 };
 
 /*
