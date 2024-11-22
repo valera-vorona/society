@@ -106,6 +106,7 @@ struct unit_t {
     int id;
     char *name;         /* not strduped */
     float *probs;
+    float *pass;
 };
 
 struct innate {

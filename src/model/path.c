@@ -15,7 +15,7 @@ struct step {
     struct vec2 neighbors[8];   /* neighbors */
 };
 
-static float get_passability(struct unit *u, struct tile *t);
+static float get_passability(struct world *w, struct unit *u, struct tile *t);
 static struct step *arrputsorted(struct step *a, struct step v);
 
 void
@@ -147,11 +147,16 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
                     break;
                 }
             }
+            float pass = get_passability(w, u, &tiles[map->size.x * neighbor.y + neighbor.x]);
+            if (pass < .1) continue;
+            /* diagonales */
+            if (current->coo.x != neighbor.x && current->coo.y != neighbor.y)
+                pass *= 1.4;
             if (!s_found) {
-                struct step step = { neighbor, current->g + 1, calc_h(neighbor, finish), 0 };
+                struct step step = { coo: neighbor, g: current->g + pass, h: calc_h(neighbor, finish), neighbors_num: 0 };
                 open = arrputsorted(open, step);
-            } else if (current->g + 1 + calc_h(neighbor, finish) < s_found->g + s_found->h) {
-                s_found->g = current->g + 1;
+            } else if (current->g + pass + calc_h(neighbor, finish) < s_found->g + s_found->h) {
+                s_found->g = current->g + pass;
             }
         }
     }
@@ -184,8 +189,8 @@ found:
 }
 
 static float
-get_passability(struct unit *u, struct tile *t) {
-    return .5;
+get_passability(struct world *w, struct unit *u, struct tile *t) {
+    return w->unit_types[u->type].pass[t->type];
 }
 
 /* it sorts struct step *s array from more to less f then from less to more g
