@@ -85,8 +85,9 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
     /* init images */
     app->images = NULL;
     shput(app->images, "menu_bg", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "menu_bg.jpg")));
+    shput(app->images, "iconset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "iconset.png")));
     shput(app->images, "landset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "landset.png")));
-    shput(app->images, "unitset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "units-tileset.png")));
+    shput(app->images, "unitset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "unitset.png")));
 
     /* init views */
     app->views = NULL;

@@ -24,6 +24,7 @@ struct main_view {
     } action_mode;
     struct path path;
     struct vec2 prev_hovered_coo;
+    struct nk_image iconset;
     struct nk_image landset;
     struct nk_image unitset;
 };
@@ -39,6 +40,7 @@ void main_view_init(struct view *view) {
     path_init(&data->path);
     data->prev_hovered_coo.x = -1;
     data->prev_hovered_coo.y = -1;
+    data->iconset = app_get_image(view->app, "iconset");
     data->landset = app_get_image(view->app, "landset");
     data->unitset = app_get_image(view->app, "unitset");
 }
@@ -185,8 +187,8 @@ void main_view_draw(struct view *view) {
 
                         /* drawing circle under the player */
                         if (u->flags & UF_PLAYER) {
-                            src.y = 16 + 72*15;
-                            sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
+                            src.y = 16;
+                            sub = nk_subimage_handle(data->iconset.handle, 1176, 1176, src);
                             nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                         }
 
