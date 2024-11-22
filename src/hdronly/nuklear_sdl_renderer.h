@@ -30,7 +30,7 @@ void app_scroll_map(void *userdata, int x, int y);
 struct nk_font_atlas;
 
 NK_API struct nk_context*   nk_sdl_init(SDL_Window *win, SDL_Renderer *renderer, void *userdata);
-void                        *nk_sdl_device_upload_image(const char *fname);
+void                        *nk_sdl_device_upload_image(const char *fname, SDL_TextureAccess access);
 NK_API void                 nk_sdl_font_stash_begin(struct nk_font_atlas **atlas);
 NK_API void                 nk_sdl_font_stash_end(void);
 NK_API int                  nk_sdl_handle_event(SDL_Event *evt);
@@ -86,7 +86,7 @@ static struct nk_sdl {
     void *userdata;
 } sdl;
 
-void *nk_sdl_device_upload_image(const char *fname) {
+void *nk_sdl_device_upload_image(const char *fname, SDL_TextureAccess access) {
     int width;
     int height;
     int channels_in_file;
@@ -97,7 +97,7 @@ void *nk_sdl_device_upload_image(const char *fname) {
         return NULL;
     }
 
-    SDL_Texture *g_SDLTexture = SDL_CreateTexture(sdl.renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, width, height);
+    SDL_Texture *g_SDLTexture = SDL_CreateTexture(sdl.renderer, SDL_PIXELFORMAT_RGBA32, access, width, height);
     if (g_SDLTexture == NULL) {
         SDL_Log("Error creating texture: %s", SDL_GetError());
         return NULL;

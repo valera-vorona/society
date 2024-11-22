@@ -1,4 +1,5 @@
 #include "app.h"
+#include "icon.h"
 #include "menu.h"
 #include "view.h"
 #include "gen.h"
@@ -15,7 +16,7 @@ int run(struct app *app);
 
 void run_init(struct app *app);
 
-void app_warning(char *format, ...) {
+void app_warning(const char *format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -84,10 +85,15 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
 
     /* init images */
     app->images = NULL;
-    shput(app->images, "menu_bg", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "menu_bg.jpg")));
-    shput(app->images, "iconset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "iconset.png")));
-    shput(app->images, "landset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "landset.png")));
-    shput(app->images, "unitset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "unitset.png")));
+    shput(app->images, "menu_bg", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "menu_bg.jpg", SDL_TEXTUREACCESS_STATIC)));
+    shput(app->images, "iconset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "iconset.png", SDL_TEXTUREACCESS_TARGET)));
+    shput(app->images, "landset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "landset.png", SDL_TEXTUREACCESS_STATIC)));
+    shput(app->images, "unitset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "unitset.png", SDL_TEXTUREACCESS_STATIC)));
+
+    /* generate image rotations */
+    if (icon_dup(app->renderer, shget(app->images, "iconset"))) {
+        return 1;
+    }
 
     /* init views */
     app->views = NULL;

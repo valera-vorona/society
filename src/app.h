@@ -61,7 +61,7 @@ struct app {
     struct jq_value *json;
 };
 
-void app_warning(char *format, ...);
+void app_warning(const char *format, ...);
 int app_init(struct app *app, uint32_t seed, struct vec2 size);
 void app_free(struct app *app);
 void app_run(struct app *app);

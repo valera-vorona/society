@@ -10,6 +10,7 @@ set(SOURCE_EXE
     hdronly/jquick.h
     hdronly/nuklear_sdl_renderer.h
     hdronly/hdronly.c
+    model/icon.h    model/icon.c
     model/gen.h     model/gen.c
     model/rand.h    model/rand.c
     model/serial.h  model/serial.c
