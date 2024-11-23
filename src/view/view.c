@@ -79,6 +79,27 @@ void main_view_center_at(struct view *view, struct vec2 coo) {
 #define min(a, b) (a) < (b) ? (a) : (b)
 #define max(a, b) (a) > (b) ? (a) : (b)
 
+int get_path_icon(struct vec2 prev, struct vec2 cur) {
+    struct vec2 delta = { cur.x - prev.x, cur.y - prev.y };
+    switch (delta.x) {
+    case -1:    switch (delta.y) {
+                case -1: return 5;
+                case  1: return 3;
+                default: return 4;
+                }
+    case 1:     switch (delta.y) {
+                case -1: return 7;
+                case  1: return 1;
+                default: return 0;
+                }
+    default:    switch (delta.y) {
+                case -1: return 6;
+                case  1: return 2;
+                default: return 0;
+                }
+    }
+}
+
 void main_view_draw(struct view *view) {
     struct app *app = view->app;
     struct world *w = &app->cur_world->value;
@@ -154,6 +175,7 @@ void main_view_draw(struct view *view) {
             if (nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_LEFT)) {
                 if (!path_is_free(data->path)) {
                     ai_add_task_from_path(w->player_ai, data->path);
+                    path_free(&data->path);
                 }
             }
         }
@@ -196,6 +218,20 @@ void main_view_draw(struct view *view) {
                         sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
+                }
+            }
+
+            /* drawing the path */
+            if (data->action_mode == AM_WALK && data->path.steps) {
+                struct vec2 prev = { player->coords.x / 64, player->coords.y / 64 };
+                for (struct vec2 *i = data->path.steps, *ie = i + arrlenu(data->path.steps); i != ie; ++i) {
+                    src.x = 16 + 72 * get_path_icon(prev, *i);
+                    src.y = 16 + 72;
+                    prev = *i;
+                    struct nk_image sub = nk_subimage_handle(data->iconset.handle, 1176, 1176, src);
+                    dest.x = (i->x - frame.x) * dest.w - left_margin.x;
+                    dest.y = (i->y - frame.y) * dest.h - left_margin.y;
+                    nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                 }
             }
         }
