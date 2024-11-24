@@ -2,21 +2,19 @@
 #include "stb_ds.h"
 #include <math.h>
 
-#include <stdio.h>
-
 #define max(a, b) (a) > (b) ? (a) : (b)
 #define calc_h(src, dest) max(abs(src.x - dest.x), abs(src.y - dest.y))
 
-struct step {
+struct node {
     struct vec2 coo;
     float g;                    /* moving cost from src tile to this tile */
     int h;                      /* estimated cost from this tile to dest tile */
-    int neighbors_num;          /* max = 8 (left, up, right, down and diagonals) */
-    struct vec2 neighbors[8];   /* neighbors */
+    struct node *prev;          /* previous path node */
 };
 
 static float get_passability(struct world *w, struct unit *u, struct tile *t);
-static struct step *arrputsorted(struct step *a, struct step v);
+#define is_obstacle(pass) (pass == .0)
+static struct node *arrputsorted(struct node *a, struct node v);
 
 void
 path_init(struct path *p) {
@@ -40,11 +38,16 @@ path_free(struct path *p) {
  */
 struct path
 find_path(struct world *w, struct unit *u, struct vec2 dest) {
+    struct neighbor {
+        struct vec2 coo;
+        float pass;
+    } neighbors[8];
+
     struct path rv = { NULL };
     struct map *map = &w->map;
     struct tile *tiles = map->tiles;
-    struct step *open = NULL;
-    struct step *close = NULL;
+    struct node *open = NULL;
+    struct node *close = NULL;
     int path_found = 0;
 
     /* src tile is u->coords / 64, dest tile is dest.
@@ -52,7 +55,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
      */
     struct vec2 finish = { u->coords.x / 64, u->coords.y / 64 };
     int h = calc_h(dest, finish);
-    struct step start = { dest, .0, h, 0 };
+    struct node start = { coo: dest, g: .0, h: h, prev: NULL };
 
     arrsetcap(open, h * 2);
     arrsetcap(close, h * 2);
@@ -62,9 +65,10 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
     while (arrlenu(open)) {
         int num = 0;
         /* TODO: I should get rid of copying here */
-        struct step current_v = open[ arrlenu(open) - 1];
-        struct step *current = &current_v;
+        struct node current_v = open[ arrlenu(open) - 1];
+        struct node *current = &current_v;
         struct vec2 coo = current->coo;
+        float pass;
 
         /* moving the step with the least f, then highest g from open to close */
         arrput(close, arrpop(open));
@@ -81,58 +85,84 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
         /* filling in the neighbors array with coords */
         if (coo.x > 0) {
             if (coo.y > 0) {
-                current->neighbors[num].x = coo.x - 1;
-                current->neighbors[num++].y = coo.y - 1;
+                pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+                if (!is_obstacle(pass)) {
+                    neighbors[num].coo.x = coo.x - 1;
+                    neighbors[num].coo.y = coo.y - 1;
+                    neighbors[num++].pass = pass * 1.4;
+                }
             }
 
-            current->neighbors[num].x = coo.x - 1;
-            current->neighbors[num++].y = coo.y;
+            pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+            if (!is_obstacle(pass)) {
+                neighbors[num].coo.x = coo.x - 1;
+                neighbors[num].coo.y = coo.y;
+                neighbors[num++].pass = pass;
+            }
 
             if (coo.y + 1 < map->size.y) {
-                current->neighbors[num].x = coo.x - 1;
-                current->neighbors[num++].y = coo.y + 1;
+                pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+                if (!is_obstacle(pass)) {
+                    neighbors[num].coo.x = coo.x - 1;
+                    neighbors[num].coo.y = coo.y + 1;
+                    neighbors[num++].pass = pass * 1.4;
+                }
             }
         }
 
         if (coo.y > 0) {
-            current->neighbors[num].x = coo.x;
-            current->neighbors[num++].y = coo.y - 1;
+            pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+            if (!is_obstacle(pass)) {
+                neighbors[num].coo.x = coo.x;
+                neighbors[num].coo.y = coo.y - 1;
+                neighbors[num++].pass = pass;
+            }
         }
 
         if (coo.y + 1 < map->size.y) {
-            current->neighbors[num].x = coo.x;
-            current->neighbors[num++].y = coo.y + 1;
+            pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+            if (!is_obstacle(pass)) {
+                neighbors[num].coo.x = coo.x;
+                neighbors[num].coo.y = coo.y + 1;
+                neighbors[num++].pass = pass;
+            }
         }
 
         if (coo.x + 1 < map->size.x) {
             if (coo.y > 0) {
-                current->neighbors[num].x = coo.x + 1;
-                current->neighbors[num++].y = coo.y - 1;
+                pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+                if (!is_obstacle(pass)) {
+                    neighbors[num].coo.x = coo.x + 1;
+                    neighbors[num].coo.y = coo.y - 1;
+                    neighbors[num++].pass = pass * 1.4;
+                }
             }
 
-            current->neighbors[num].x = coo.x + 1;
-            current->neighbors[num++].y = coo.y;
+            pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+            if (!is_obstacle(pass)) {
+                neighbors[num].coo.x = coo.x + 1;
+                neighbors[num].coo.y = coo.y;
+                neighbors[num++].pass = pass;
+            }
 
             if (coo.y + 1 < map->size.y) {
-                current->neighbors[num].x = coo.x + 1;
-                current->neighbors[num++].y = coo.y + 1;
+                pass = get_passability(w, u, &tiles[map->size.x * neighbors[num].coo.y + neighbors[num].coo.x]);
+                if (!is_obstacle(pass)) {
+                    neighbors[num].coo.x = coo.x + 1;
+                    neighbors[num].coo.y = coo.y + 1;
+                    neighbors[num++].pass = pass * 1.4;
+                }
             }
         }
 
-        current->neighbors_num = num;
-
-        /* TODO: I should get rid of copying here */
-        close[ arrlenu(close) - 1].neighbors_num = current->neighbors_num;
-        memcpy(&close[ arrlenu(close) - 1].neighbors, &current->neighbors, sizeof(struct vec2) * 8);
-
         /* for each neighbor */
         for (int i = 0; i != num; ++i) {
-            struct vec2 neighbor = current->neighbors[i];
+            struct neighbor *n = &neighbors[i];
 
             /* looking for the neighbor in the close list */
             int found = 0;
             for (int j = 0, je = arrlenu(close); j != je; ++j) {
-                if (neighbor.x == close[j].coo.x && neighbor.y == close[j].coo.y) {
+                if (n->coo.x == close[j].coo.x && n->coo.y == close[j].coo.y) {
                     found = 1;
                     break;
                 }
@@ -140,46 +170,32 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
             if (found) continue;
 
             /* looking for the neighbor in the open list */
-            struct step *s_found = NULL;
+            struct node *s_found = NULL;
             for (int j = 0, je = arrlenu(open); j != je; ++j) {
-                if (neighbor.x == open[j].coo.x && neighbor.y == open[j].coo.y) {
+                if (n->coo.x == open[j].coo.x && n->coo.y == open[j].coo.y) {
                     s_found = &open[j];
                     break;
                 }
             }
-            float pass = get_passability(w, u, &tiles[map->size.x * neighbor.y + neighbor.x]);
-            if (pass < .1) continue;
-            /* diagonales */
-            if (current->coo.x != neighbor.x && current->coo.y != neighbor.y)
-                pass *= 1.4;
+
             if (!s_found) {
-                struct step step = { coo: neighbor, g: current->g + pass, h: calc_h(neighbor, finish), neighbors_num: 0 };
-                open = arrputsorted(open, step);
-            } else if (current->g + pass + calc_h(neighbor, finish) < s_found->g + s_found->h) {
-                s_found->g = current->g + pass;
+                struct node node = { coo: n->coo, g: current->g + n->pass, h: calc_h(n->coo, finish), prev: current };
+                open = arrputsorted(open, node);
+            } else if (current->g + n->pass + calc_h(n->coo, finish) < s_found->g + s_found->h) {
+                s_found->g = current->g + n->pass;
             }
         }
     }
-
 found:
+
     arrfree(open);
-    /* Backtracking
-     * filling in the path
-     * putting neighbors if only their g < the current one and if they are in the close list
+    /* Backtracking, filling in the path
      */
     if (path_found) {
         for (int i = arrlenu(close) - 1, ie = 0; i >= ie; --i) {
-            for (int j = 0, je = close[i].neighbors_num; j != je; ++j) {
-                for (int k = 0, ke = arrlenu(close); k != ke; ++k) {
-                    if (close[k].g < close[i].g &&
-                        close[i].neighbors[j].x == close[k].coo.x &&
-                        close[i].neighbors[j].y == close[k].coo.y) {
-                        struct vec2 coo = { close[i].coo.x, close[i].coo.y };
-                        arrput(rv.steps, coo);
-                    }
-                }
-            }
+            arrput(rv.steps, close[i].coo);
         }
+
         arrput(rv.steps, dest);
     }
 
@@ -196,8 +212,8 @@ get_passability(struct world *w, struct unit *u, struct tile *t) {
 /* it sorts struct step *s array from more to less f then from less to more g
  * so that the least item lays in the end of array
  */
-static struct step *
-arrputsorted(struct step *a, struct step v) {
+static struct node *
+arrputsorted(struct node *a, struct node v) {
     size_t b = 0;
     size_t e = arrlenu(a);
     while (b != e) {
