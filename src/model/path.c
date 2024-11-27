@@ -9,7 +9,7 @@ struct node {
     struct vec2 coo;
     float g;                    /* moving cost from src tile to this tile */
     int h;                      /* estimated cost from this tile to dest tile */
-    size_t prev;                /* previous path node */
+    int prev;                   /* previous path node */
 };
 
 float calc_h(struct vec2 src, struct vec2 dest);
@@ -30,11 +30,10 @@ path_free(struct path *p) {
     }
 }
 
-/* TODO: function find_path is too inafficient and should be optimized!
- * 1. Structs current_v, current are copyed but shouldn't;
- * 2. Open array is kept ordered, I can use this to find data in it
+/* TODO:
+ * 1. Open array is kept ordered, I can use this to find data in it
  *    instead of iterating;
- * 3. close array is not ordered, I should check if I can turn it to a hash
+ * 2. close array is not ordered, I should check if I can turn it to a hash
  *    to ease the finding prosess;
  */
 struct path
@@ -54,16 +53,19 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
 
     /* src tile is u->coords / 64, dest tile is dest.
      * we swap src and dest not to reverse the result path
+     * as said in A* algorithm instruction
      */
     struct vec2 finish = { u->coords.x / 64, u->coords.y / 64 };
     struct node start = { coo: dest, g: .0, h: calc_h(dest, finish), prev: -1 };
 
-    arrsetcap(data, start.h * 2);
-    arrsetcap(open, start.h * 2);
-    arrsetcap(close, start.h * 2);
+    if (!is_obstacle(get_passability(w, u, &tiles[map->size.x * dest.y + dest.x]))) {
+        arrsetcap(data, (int)start.h * 2);
+        arrsetcap(open, (int)start.h * 2);
+        arrsetcap(close, (int)start.h * 2);
 
-    arrput(data, start);
-    arrput(open, 0);
+        arrput(data, start);
+        arrput(open, 0);
+    }
 
     while (arrlenu(open)) {
         int num = 0;
@@ -75,13 +77,9 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
         /* moving the node with the least f, then highest g from open to close */
         arrput(close, arrpop(open));
 
-        /* looking for the finish coo in the close list */
-        for (int j = 0, je = arrlenu(close); j != je; ++j) {
-            if (finish.x == data[ close[j] ].coo.x && finish.y == data[ close[j] ].coo.y) {
-                /* path is found */
-                path_found = 1;
-                goto found;
-            }
+        if (finish.x == current->coo.x && finish.y == current->coo.y) {
+            path_found = 1;
+            break;
         }
 
         /* filling in the neighbors array with coords */
@@ -162,7 +160,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
         for (int i = 0; i != num; ++i) {
             struct neighbor *n = &neighbors[i];
 
-            /* looking for the neighbor in the close list */
+            /* looking for the neighbor in the close list, TODO: to be optimized */
             int found = 0;
             for (int j = 0, je = arrlenu(close); j != je; ++j) {
                 if (n->coo.x == data[ close[j] ].coo.x && n->coo.y == data[ close[j] ].coo.y) {
@@ -172,7 +170,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
             }
             if (found) continue;
 
-            /* looking for the neighbor in the open list */
+            /* looking for the neighbor in the open list, TODO: to be optimized */
             struct node *s_found = NULL;
             for (int j = 0, je = arrlenu(open); j != je; ++j) {
                 if (n->coo.x == data[ open[j] ].coo.x && n->coo.y == data[ open[j] ].coo.y) {
@@ -192,20 +190,16 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
         }
     }
 
-found:
     arrfree(open);
-    /* Backtracking, filling in the path
-     */
+    /* Backtracking, filling in the path */
     if (path_found) {
-        struct node *node = &data[ close[arrlenu(close) - 1] ];
-        size_t i = arrlenu(close) - 1;
+        int i = close[ arrlenu(close) - 1 ];        /* index in the data array */
+        i = data[i].prev;                           /* ignoring the first step */
 
         while (i != -1) {
             arrput(rv.steps, data[i].coo);
             i = data[i].prev;
         }
-
-        arrput(rv.steps, dest);
     }
 
     arrfree(close);
