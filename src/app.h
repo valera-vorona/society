@@ -7,6 +7,8 @@
   #include "nuklear_sdl_renderer.h"
 #endif
 
+#define DATA_PATH "assets/git-lfs-files/install/"
+
 struct nk_context;
 struct nk_image;
 struct app;

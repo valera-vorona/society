@@ -12,8 +12,6 @@
 
 int run(struct app *app);
 
-#define DATA_PATH "assets/git-lfs-files/install/"
-
 void run_init(struct app *app);
 
 void app_warning(const char *format, ...) {
@@ -84,11 +82,11 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
     run_init(app);
 
     /* init images */
-    app->images = NULL;
-    shput(app->images, "menu_bg", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "menu_bg.jpg", SDL_TEXTUREACCESS_STATIC)));
-    shput(app->images, "iconset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "iconset.png", SDL_TEXTUREACCESS_TARGET)));
-    shput(app->images, "landset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "landset.png", SDL_TEXTUREACCESS_STATIC)));
-    shput(app->images, "unitset", nk_image_ptr(nk_sdl_device_upload_image(DATA_PATH "unitset.png", SDL_TEXTUREACCESS_STATIC)));
+    val = jq_find(app->json, "images", 0);
+    app->images = read_images(val);
+    if (!app->images) {
+        return 1;
+    }
 
     /* generate image rotations */
     if (icon_dup(app->renderer, shget(app->images, "iconset"))) {

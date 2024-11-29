@@ -93,7 +93,7 @@ void *nk_sdl_device_upload_image(const char *fname, SDL_TextureAccess access) {
 
     stbi_uc *image = stbi_load(fname, &width, &height, &channels_in_file, 4);
     if (image == NULL) {
-        SDL_Log("Error opening file: %s", stbi_failure_reason());
+        SDL_Log("Error opening file '%s': %s", fname, stbi_failure_reason());
         return NULL;
     }
 

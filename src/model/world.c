@@ -6,6 +6,7 @@
 int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     struct jq_value *val;
     struct jq_value *v;
+    struct jq_pair *pair;
 
     w->mt = mt;
 
@@ -31,6 +32,9 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         app_warning("'fps' is not found or not a number, set to default (60.0)");
         w->fps = 60.;
     }
+
+    /* init images */
+    //w->images = NULL;
 
     /* Reading tile types */
     w->map.tile_types = NULL;
