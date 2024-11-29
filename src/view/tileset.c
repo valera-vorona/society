@@ -6,10 +6,10 @@ tileset_init(struct tileset *t) {
 }
 
 struct
-nk_image tileset_get(struct tileset *t, struct vec2 n) {
+nk_image tileset_get(struct tileset *t, int x, int y) {
     struct nk_rect r = {
-        t->margin.x + (t->padding.x + t->tile_size.x) * n.x,
-        t->margin.y + (t->padding.y + t->tile_size.y) * n.y,
+        t->margin.x + (t->padding.x + t->tile_size.x) * x,
+        t->margin.y + (t->padding.y + t->tile_size.y) * y,
         t->tile_size.x,
         t->tile_size.y
     };
@@ -19,8 +19,8 @@ nk_image tileset_get(struct tileset *t, struct vec2 n) {
 
 int
 tileset_quad_get_tile_index(struct tileset *t, int n, int neighbors) {
-    int q = t->tileset_size.x / 4;
-    struct vec2 quad = { (n % q) * 4, (n / q) * 4 };
+    struct vec2 quad = { (n % t->quad_size.x) * t->quad_size.x, (n / t->quad_size.x) * t->quad_size.y };
+
     switch (neighbors) {
     case                                              0: ++quad.x; ++quad.y; break;
     case                    neighbor_left | neighbor_up: break;
@@ -45,7 +45,7 @@ tileset_quad_get_tile_index(struct tileset *t, int n, int neighbors) {
     case neighbor_left | neighbor_right | neighbor_up | neighbor_down: quad.x += 3; quad.y += 3; break;
     }
 
-    return quad.y + t->tileset_size.x + quad.x;
+    return quad.y * t->tileset_size.x + quad.x;
 }
 
 

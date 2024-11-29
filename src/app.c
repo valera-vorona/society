@@ -41,6 +41,23 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
     val = jq_find(app->json, "app", "name", 0);
     app->name = val && jq_isstring(val) ? val->value.string : "society";
 
+    app->running = 1;
+    app->video_mode = WINDOWED;
+    app->win_size = size;
+    run_init(app);
+
+    /* init images */
+    val = jq_find(app->json, "images", 0);
+    app->images = read_images(val);
+    if (!app->images) {
+        return 1;
+    }
+
+    /* generate image rotations */
+    if (icon_dup(app->renderer, shget(app->images, "iconset"))) {
+        return 1;
+    }
+
     /* init worlds */
     app->worlds = NULL;
     val = jq_find(app->json, "worlds", 0);
@@ -73,23 +90,6 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
         }
     } else {
         app_warning("'cur_world' doesn't exist or is not a string");
-        return 1;
-    }
-
-    app->running = 1;
-    app->video_mode = WINDOWED;
-    app->win_size = size;
-    run_init(app);
-
-    /* init images */
-    val = jq_find(app->json, "images", 0);
-    app->images = read_images(val);
-    if (!app->images) {
-        return 1;
-    }
-
-    /* generate image rotations */
-    if (icon_dup(app->renderer, shget(app->images, "iconset"))) {
         return 1;
     }
 

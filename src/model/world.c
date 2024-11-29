@@ -1,12 +1,15 @@
 #include "world.h"
 #include "app.h"
 #include "serial.h"
+#include "tileset.h"
 #include "stb_ds.h"
 
+static int get_vec2(struct jq_value *v, struct vec2 *out);
+
 int world_init(struct world *w, const char *fname, struct mt_state *mt) {
+    char buf[4096];
     struct jq_value *val;
     struct jq_value *v;
-    struct jq_pair *pair;
 
     w->mt = mt;
 
@@ -33,8 +36,78 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         w->fps = 60.;
     }
 
-    /* init images */
-    //w->images = NULL;
+    /* Reading tilesets */
+    w->tilesets = NULL;
+    val = jq_find(w->json, "tilesets", 0);
+    if (val && jq_isobject(val)) {
+        struct jq_pair *p;
+        struct jq_value *k;
+        jq_foreach_object(p, val) {
+            struct tileset t;
+            tileset_init(&t);
+            v = &p->value;
+            k = jq_find(v, "file", 0);
+            if (k && jq_isstring(k)) {
+                snprintf(buf, sizeof(buf), DATA_PATH "%s", k->value.string);
+                void *tex = nk_sdl_device_upload_image(buf, SDL_TEXTUREACCESS_STATIC);
+                if (!tex) return 1;
+                t.image = nk_image_ptr(tex);
+                if (get_image_size(tex, &t.image_size.x, &t.image_size.y)) {
+                    return 1;
+                }
+            } else {
+                app_warning("Image file doesn't exist or is not a string");
+                return 1;
+            }
+
+            k = jq_find(v, "size", "margin", 0);
+            if (k) {
+                if (get_vec2(k, &t.margin))
+                    return 1;
+            } else {
+                app_warning("'margin' doesn't exist");
+                return 1;
+            }
+
+            k = jq_find(v, "size", "padding", 0);
+            if (k) {
+                if (get_vec2(k, &t.padding))
+                    return 1;
+            } else {
+                app_warning("'padding' doesn't exist");
+                return 1;
+            }
+
+            k = jq_find(v, "size", "tile", 0);
+            if (k) {
+                if (get_vec2(k, &t.tile_size))
+                    return 1;
+            } else {
+                app_warning("'size.tile' doesn't exist");
+                return 1;
+            }
+
+            k = jq_find(v, "size", "tileset", 0);
+            if (k) {
+                if (get_vec2(k, &t.tileset_size))
+                    return 1;
+            } else {
+                app_warning("'size.tileset' doesn't exist");
+                return 1;
+            }
+
+            k = jq_find(v, "size", "quad", 0);
+            if (k) {
+                if (get_vec2(k, &t.quad_size))
+                    return 1;
+            } else {
+                app_warning("'size.quad' doesn't exist");
+                return 1;
+            }
+
+            shput(w->tilesets, p->key, t);
+        }
+    }
 
     /* Reading tile types */
     w->map.tile_types = NULL;
@@ -194,5 +267,51 @@ void world_step(struct world *w) {
     for (int i = 0, ie = arrlenu(w->ais); i != ie; ++i) {
         w->ais[i].step(&w->ais[i]);
     }
+}
+
+static int
+get_vec2(struct jq_value *v, struct vec2 *out) {
+    struct vec2 rv;
+    struct jq_value *k;
+
+    if (jq_isarray(v) && jq_array_length(v) == 2) {
+        k = jq_find(v, "0", 0);
+        if (k && jq_isinteger(k)) {
+            rv.x = k->value.integer;
+        } else {
+            app_warning("'size.x' is not an integer");
+            return 1;
+        }
+
+        k = jq_find(v, "1", 0);
+        if (k && jq_isinteger(k)) {
+            rv.y = k->value.integer;
+        } else {
+            app_warning("'size.y' is not an integer");
+            return 1;
+        }
+    } else if (jq_isobject(v)) {
+        k = jq_find(v, "x");
+        if (k && jq_isinteger(k)) {
+            rv.x = k->value.integer;
+        } else {
+            app_warning("'size.x' is not an integer");
+            return 1;
+        }
+
+        k = jq_find(v, "y");
+        if (k && jq_isinteger(k)) {
+            rv.y = k->value.integer;
+        } else {
+            app_warning("'size.y' is not an integer");
+            return 1;
+        }
+    } else {
+        app_warning("'size' should be either an array of two elements (x and y) or an object of two keys (x and y)");
+        return 1;
+    }
+
+    *out = rv;
+    return 0;
 }
 

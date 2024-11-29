@@ -31,7 +31,11 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     for (int i = 0, y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x, ++i) {
             float r = .5 + perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
-            struct tile tile = { individual_distribute(gen_parts, r * 100.), { ID_NOTHING } };
+            struct tile tile = {
+                type: individual_distribute(gen_parts, r * 100.),
+                units: { ID_NOTHING }
+            };
+
             map->tiles[i] = tile;
         }
     }
@@ -45,9 +49,12 @@ map_get_tile(struct map *map, int x, int y) {
 }
 
 static void
-transit_map(struct map *map) {
-    return;
+transit_map(struct world *w) {
+    struct map *map = &w->map;
+    /* TODO: I should check if tileset 'landset' exists */
+    struct tileset *t = &shgetp_null(w->tilesets, "landset")->value;
     struct vec2 size = map->size;
+
     for (int i = 0, y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x, ++i) {
             int quad = 0;
@@ -65,7 +72,8 @@ transit_map(struct map *map) {
                 quad |= neighbor_down;
             }
 
-            map->tiles[i].transit = tileset_quad_get_tile_index(NULL, tile->type + 1, quad);
+            map->tiles[i].tileset_index = tileset_quad_get_tile_index(t, tile->type, 0);
+            map->tiles[i].transit_index = tileset_quad_get_tile_index(t, tile->type + 1, quad);
         }
     }
 }
@@ -123,7 +131,7 @@ gen_unit_ais(struct world *w) {
 
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
-    transit_map(&w->map);
+    transit_map(w);
     gen_units(w);
     gen_unit_flags(w);
     gen_unit_ais(w);

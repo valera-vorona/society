@@ -31,6 +31,7 @@ struct nk_font_atlas;
 
 NK_API struct nk_context*   nk_sdl_init(SDL_Window *win, SDL_Renderer *renderer, void *userdata);
 void                        *nk_sdl_device_upload_image(const char *fname, SDL_TextureAccess access);
+int                         get_image_size(SDL_Texture *image, int *x, int *y);
 NK_API void                 nk_sdl_font_stash_begin(struct nk_font_atlas **atlas);
 NK_API void                 nk_sdl_font_stash_end(void);
 NK_API int                  nk_sdl_handle_event(SDL_Event *evt);
@@ -110,6 +111,14 @@ void *nk_sdl_device_upload_image(const char *fname, SDL_TextureAccess access) {
         fprintf(stderr, "Can't set texture blend mode\n");
 
     return g_SDLTexture;
+}
+
+int get_image_size(SDL_Texture *image, int *x, int *y) {
+    int rv = SDL_QueryTexture(image, NULL, NULL, x, y);
+    if (rv)
+        SDL_Log("Can't get texture size: %s", SDL_GetError());
+
+    return rv;
 }
 
 NK_INTERN void

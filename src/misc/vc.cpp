@@ -1,5 +1,5 @@
 /* This file is not currently used but may be helpful for loading images and
- videos if it is decided to refuse stb_image.h in favor for OpenCV library.
+ videos if it is decided to refuse stb_image.h in favor of OpenCV library.
  */
 
 #include <opencv2/opencv.hpp>

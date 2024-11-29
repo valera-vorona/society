@@ -3,6 +3,7 @@
   #include "nuklear_sdl_renderer.h"
 #endif
 #include "app.h"
+#include "tileset.h"
 #include "path.h"
 #include "ai.h"
 #include "stb_ds.h"
@@ -25,8 +26,8 @@ struct main_view {
     struct path path;
     struct vec2 prev_hovered_coo;
     struct nk_image iconset;
-    struct nk_image landset;
     struct nk_image unitset;
+    struct tileset *landset;
 };
 
 void main_view_init(struct view *view) {
@@ -41,8 +42,9 @@ void main_view_init(struct view *view) {
     data->prev_hovered_coo.x = -1;
     data->prev_hovered_coo.y = -1;
     data->iconset = app_get_image(view->app, "iconset");
-    data->landset = app_get_image(view->app, "landset");
     data->unitset = app_get_image(view->app, "unitset");
+
+    data->landset = &shgetp_null(view->app->cur_world->value.tilesets, "landset")->value;
 }
 
 void main_view_free(struct view *view) {
@@ -157,11 +159,12 @@ void main_view_draw(struct view *view) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
                     /* drawing tile */
                     struct tile *tile = &map->tiles[i];
-                    src.y = 16 + tile->type * 72;
-                    struct nk_image sub = nk_subimage_handle(data->landset.handle, 1176, 1176, src);
+                    struct nk_image sub = tileset_get_by_index(data->landset, tile->tileset_index);
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    //sub = tileset_get_by_index(data->landset, tile->transit_index);
+                    //nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                 }
             }
 
@@ -255,8 +258,7 @@ void main_view_draw(struct view *view) {
 
             for (int y = frame.y; y < frame.h; ++y) {
                 for (int i = y*map->size.x, x = frame.x; x < frame.w; ++i, ++x) {
-                    src.y = 16 + map->tiles[i].type * 72;
-                    struct nk_image sub = nk_subimage_handle(data->landset.handle, 1176, 1176, src);
+                    struct nk_image sub = tileset_get_by_index(data->landset, map->tiles[i].tileset_index);
                     dest.x = space.x + x;
                     dest.y = space.y + y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));

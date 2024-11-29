@@ -2,6 +2,9 @@
 #define _TYPES_H_
 
 #include "rand.h"
+#ifndef NK_SDL_RENDERER_H_
+  #include "nuklear_sdl_renderer.h"
+#endif
 #include <stdint.h>
 #include <limits.h>
 
@@ -84,8 +87,9 @@ struct tile_t {
 
 struct tile {
     int type;
+    int tileset_index;
+    int transit_index;
     int units[1];
-    int transit;
 };
 
 struct map {
@@ -209,10 +213,26 @@ struct receipt {
  * world 
  */
 
+struct tileset {
+    struct vec2 margin;
+    struct vec2 padding;
+    struct vec2 tile_size;
+    struct vec2 tileset_size;
+    struct vec2 quad_size;
+    struct nk_image image;
+    struct vec2 image_size;
+};
+
+struct tileset_hash {
+    char *key;
+    struct tileset value;
+};
+
 struct world {
     struct jq_value *json;
     struct mt_state *mt;
     float fps;
+    struct tileset_hash *tilesets;
     struct ai *player_ai;
     struct map map;
     struct resource *recources;
