@@ -85,6 +85,7 @@ struct tile_t {
 struct tile {
     int type;
     int units[1];
+    int transit;
 };
 
 struct map {

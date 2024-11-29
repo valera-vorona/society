@@ -1,9 +1,8 @@
 #include "gen.h"
 #include "rand.h"
 #include "ai.h"
+#include "tileset.h"
 #include "stb_ds.h"
-#define JQ_WITH_DOM
-#include "jquick.h"
 #include <malloc.h>
 
 int individual_distribute(float *items, float v) {
@@ -38,6 +37,37 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     }
 
     arrfree(gen_parts);
+}
+
+struct tile *
+map_get_tile(struct map *map, int x, int y) {
+    return map->tiles + map->size.x * y + x;
+}
+
+static void
+transit_map(struct map *map) {
+    return;
+    struct vec2 size = map->size;
+    for (int i = 0, y = 0; y < size.y; ++y) {
+        for (int x = 0; x < size.x; ++x, ++i) {
+            int quad = 0;
+            struct tile *tile = map_get_tile(map, x, y);
+            if (x > 0 && tile->type < map_get_tile(map, x - 1, y)->type) {
+                quad |= neighbor_left;
+            }
+            if (y > 0 && tile->type < map_get_tile(map, x, y - 1)->type) {
+                quad |= neighbor_up;
+            }
+            if (x < size.x - 1 && tile->type < map_get_tile(map, x + 1, y)->type) {
+                quad |= neighbor_right;
+            }
+            if (y < size.y - 1 && tile->type < map_get_tile(map, x, y + 1)->type) {
+                quad |= neighbor_down;
+            }
+
+            map->tiles[i].transit = tileset_quad_get_tile_index(NULL, tile->type + 1, quad);
+        }
+    }
 }
 
 static void 
@@ -93,6 +123,7 @@ gen_unit_ais(struct world *w) {
 
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
+    transit_map(&w->map);
     gen_units(w);
     gen_unit_flags(w);
     gen_unit_ais(w);
