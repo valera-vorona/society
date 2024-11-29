@@ -17,6 +17,7 @@ set(SOURCE_EXE
     model/world.h   model/world.c
     model/path.h    model/path.c
     model/ai.h      model/ai.c
+    view/tileset.h  view/tileset.c
     view/menu.h     view/menu.c
     view/run.c
     view/view.h     view/view.c
