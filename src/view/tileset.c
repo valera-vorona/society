@@ -19,19 +19,22 @@ nk_image tileset_get(struct tileset *t, int x, int y) {
 
 int
 tileset_quad_get_tile_index(struct tileset *t, int n, int neighbors) {
+    if (neighbors)
+        ++n;
+
     struct vec2 quad = { (n % t->quad_size.x) * t->quad_size.x, (n / t->quad_size.x) * t->quad_size.y };
 
     switch (neighbors) {
     case                                              0: ++quad.x; ++quad.y; break;
     case                    neighbor_left | neighbor_up: break;
-    case                                    neighbor_up: ++quad.x; break;
+    case                                    neighbor_up: ++quad.x; quad.y += 2; break;
     case                   neighbor_right | neighbor_up: quad.x += 2; break;
 
-    case                                  neighbor_left: ++quad.y; break;
-    case                                 neighbor_right: quad.x +=2; ++quad.y; break;
+    case                                  neighbor_left: quad.x += 2; ++quad.y; break;
+    case                                 neighbor_right: ++quad.y; break;
 
     case                  neighbor_left | neighbor_down: quad.y += 2; break;
-    case                                  neighbor_down: ++quad.x; quad.y += 2; break;
+    case                                  neighbor_down: ++quad.x; break;
     case                 neighbor_right | neighbor_down: quad.x += 2; quad.y += 2; break;
 
     case   neighbor_left | neighbor_up | neighbor_right: quad.x += 3; break;

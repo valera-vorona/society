@@ -73,7 +73,7 @@ transit_map(struct world *w) {
             }
 
             map->tiles[i].tileset_index = tileset_quad_get_tile_index(t, tile->type, 0);
-            map->tiles[i].transit_index = tileset_quad_get_tile_index(t, tile->type + 1, quad);
+            map->tiles[i].transit_index = tileset_quad_get_tile_index(t, tile->type, quad);
         }
     }
 }

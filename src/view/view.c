@@ -163,8 +163,8 @@ void main_view_draw(struct view *view) {
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
-                    //sub = tileset_get_by_index(data->landset, tile->transit_index);
-                    //nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    sub = tileset_get_by_index(data->landset, tile->transit_index);
+                    nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                 }
             }
 
