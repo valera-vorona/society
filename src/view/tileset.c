@@ -5,8 +5,16 @@ tileset_init(struct tileset *t) {
 
 }
 
-struct
-nk_image tileset_get(struct tileset *t, int x, int y) {
+void
+tileset_get_rect(struct tileset *t, int x, int y, struct rect *r) {
+    r->x = t->margin.x + (t->padding.x + t->tile_size.x) * x;
+    r->y = t->margin.y + (t->padding.y + t->tile_size.y) * y;
+    r->w = t->tile_size.x;
+    r->h = t->tile_size.y;
+}
+
+struct nk_image
+tileset_get(struct tileset *t, int x, int y) {
     struct nk_rect r = {
         t->margin.x + (t->padding.x + t->tile_size.x) * x,
         t->margin.y + (t->padding.y + t->tile_size.y) * y,

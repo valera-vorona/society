@@ -5,6 +5,7 @@
 
 struct view;
 
+int gen_minimap(struct view *view);
 void main_view_init(struct view *view);
 void main_view_free(struct view *view);
 void main_view_draw(struct view *view);

@@ -183,6 +183,7 @@ struct vec2 get_win_size(struct app *app) {
 
 void app_gen_world(struct app *app, struct vec2 size) {
     gen_world(&app->cur_world->value, size, app->seed);
+    gen_minimap(&shget(app->views, "main_view"));
 }
 
 void app_draw(struct app *app) {

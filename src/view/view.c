@@ -25,6 +25,7 @@ struct main_view {
     } action_mode;
     struct path path;
     struct vec2 prev_hovered_coo;
+    struct nk_image minimap;
     struct nk_image iconset;
     struct nk_image unitset;
     struct tileset *landset;
@@ -245,6 +246,9 @@ void main_view_draw(struct view *view) {
     if (nk_begin(ctx, "mini_map_view", nk_rect(win_size.x - 200, 0, 200, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE)) {
         struct nk_rect content = nk_window_get_content_region(ctx);
         nk_layout_row_dynamic(ctx, content.h - content.y, 1);
+        struct nk_rect src = { 0, 0, content.w, content.h };
+
+        nk_image(ctx, nk_subimage_handle(data->minimap.handle, map->size.x, map->size.y, src));
 
         struct nk_command_buffer *canvas = nk_window_get_canvas(ctx);
 
@@ -293,5 +297,46 @@ void main_view_draw(struct view *view) {
 
     data->prev_hovered_coo.x = hovered_coo.x;
     data->prev_hovered_coo.y = hovered_coo.y;
+}
+
+int
+gen_minimap(struct view *view) {
+    struct main_view *data = (struct main_view *)view->data;
+    struct map *map = &view->app->cur_world->value.map;
+    SDL_Renderer *renderer = view->app->renderer;
+    SDL_Texture *src = data->landset->image.handle.ptr;
+    SDL_Texture *old_texture = SDL_GetRenderTarget(renderer);
+    struct SDL_Rect d = { 0, 0, 1, 1 };
+
+    struct vec2 size = map->size;
+    void *tex = create_image(size.x, size.y);
+    if (!tex)
+        return 1;
+
+    data->minimap = nk_image_ptr(tex);
+
+    if (SDL_SetRenderTarget(renderer, tex)) {
+        app_warning(SDL_GetError());
+        return 1;
+    }
+
+    for (int i = 0, y = 0; y < size.y; ++y) {
+        for (int x = 0; x < size.x; ++x, ++i) {
+            struct rect sub;
+            tileset_get_rect_by_index(data->landset, map->tiles[i].tileset_index, &sub);
+            SDL_Rect s = { sub.x, sub.y, sub.w, sub.h };
+            d.x = x;
+            d.y = y;
+            if (SDL_RenderCopy(renderer, src, &s, &d)) {
+                app_warning(SDL_GetError());
+                return 1;
+            }
+        }
+    }
+
+    if (SDL_SetRenderTarget(renderer, NULL)) {
+        app_warning(SDL_GetError());
+        return 1;
+    }
 }
 
