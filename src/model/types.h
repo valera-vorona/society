@@ -138,6 +138,7 @@ enum action_t {
     A_NOTHING   = 0,
     A_STAY,
     A_WALK,
+    A_DO,
     A_MAX
 };
 
