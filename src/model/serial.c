@@ -51,20 +51,25 @@ read_images(struct jq_value *json) {
                 }
 
                 v = jq_find(val, "access", 0);
-                if (!v || !jq_isstring(v)) {
-                    app_warning("Image access doesn't exist or is not a string");
-                    return NULL;
-                }
+                if (v) {
+                    if (!jq_isstring(v)) {
+                        app_warning("Image access doesn't exist or is not a string");
+                        return NULL;
+                    }
 
-                if (!strcmp(v->value.string, "static")) {
-                    access = SDL_TEXTUREACCESS_STATIC;
-                } else if (!strcmp(v->value.string, "streaming")) {
-                    access = SDL_TEXTUREACCESS_STREAMING;
-                } else if (!strcmp(v->value.string, "target")) {
-                    access = SDL_TEXTUREACCESS_TARGET;
+                    if (!strcmp(v->value.string, "static")) {
+                        access = SDL_TEXTUREACCESS_STATIC;
+                    } else if (!strcmp(v->value.string, "streaming")) {
+                        access = SDL_TEXTUREACCESS_STREAMING;
+                    } else if (!strcmp(v->value.string, "target")) {
+                        access = SDL_TEXTUREACCESS_TARGET;
+                    } else {
+                        app_warning("'access' %s is unknown, it should be one of 'static', 'streaming' or 'target'", v->value.string);
+                        return NULL;
+                    }
                 } else {
-                    app_warning("'access' %s is unknown, it should be one of 'static', 'streaming' or 'target'", v->value.string);
-                    return NULL;
+                    /* setting default access */
+                    access = SDL_TEXTUREACCESS_STATIC;
                 }
 
                 snprintf(buf, sizeof(buf), DATA_PATH "%s", file);

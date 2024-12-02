@@ -1,5 +1,4 @@
 #include "app.h"
-#include "icon.h"
 #include "menu.h"
 #include "view.h"
 #include "gen.h"
@@ -50,11 +49,6 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
     val = jq_find(app->json, "images", 0);
     app->images = read_images(val);
     if (!app->images) {
-        return 1;
-    }
-
-    /* generate image rotations */
-    if (icon_dup(app->renderer, shget(app->images, "iconset"))) {
         return 1;
     }
 

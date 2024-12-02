@@ -43,13 +43,37 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         struct jq_pair *p;
         struct jq_value *k;
         jq_foreach_object(p, val) {
+            SDL_TextureAccess access;
             struct tileset t;
             tileset_init(&t);
             v = &p->value;
+
+            k = jq_find(v, "access", 0);
+            if (k) {
+                if (!jq_isstring(k)) {
+                    app_warning("Image access doesn't exist or is not a string");
+                    return 1;
+                }
+
+                if (!strcmp(k->value.string, "static")) {
+                    access = SDL_TEXTUREACCESS_STATIC;
+                } else if (!strcmp(k->value.string, "streaming")) {
+                    access = SDL_TEXTUREACCESS_STREAMING;
+                } else if (!strcmp(k->value.string, "target")) {
+                    access = SDL_TEXTUREACCESS_TARGET;
+                } else {
+                    app_warning("'access' %s is unknown, it should be one of 'static', 'streaming' or 'target'", k->value.string);
+                    return 1;
+                }
+            } else {
+                /* setting default access */
+                access = SDL_TEXTUREACCESS_STATIC;
+            }
+
             k = jq_find(v, "file", 0);
             if (k && jq_isstring(k)) {
                 snprintf(buf, sizeof(buf), DATA_PATH "%s", k->value.string);
-                void *tex = nk_sdl_device_upload_image(buf, SDL_TEXTUREACCESS_STATIC);
+                void *tex = nk_sdl_device_upload_image(buf, access);
                 if (!tex) return 1;
                 t.image = nk_image_ptr(tex);
                 if (get_image_size(tex, &t.image_size.x, &t.image_size.y)) {
@@ -101,8 +125,9 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 if (get_vec2(k, &t.quad_size))
                     return 1;
             } else {
-                app_warning("'size.quad' doesn't exist");
-                return 1;
+                /* setting default quad */
+                t.quad_size.x = 1;
+                t.quad_size.y = 1;
             }
 
             shput(w->tilesets, p->key, t);

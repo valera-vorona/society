@@ -4,6 +4,7 @@
 #endif
 #include "app.h"
 #include "tileset.h"
+#include "icon.h"
 #include "path.h"
 #include "ai.h"
 #include "stb_ds.h"
@@ -26,9 +27,10 @@ struct main_view {
     struct path path;
     struct vec2 prev_hovered_coo;
     struct nk_image minimap;
-    struct nk_image iconset;
     struct nk_image unitset;
+
     struct tileset *landset;
+    struct tileset *iconset;
 };
 
 void main_view_init(struct view *view) {
@@ -42,10 +44,15 @@ void main_view_init(struct view *view) {
     path_init(&data->path);
     data->prev_hovered_coo.x = -1;
     data->prev_hovered_coo.y = -1;
-    data->iconset = app_get_image(view->app, "iconset");
     data->unitset = app_get_image(view->app, "unitset");
 
     data->landset = &shgetp_null(view->app->cur_world->value.tilesets, "landset")->value;
+    data->iconset = &shgetp_null(view->app->cur_world->value.tilesets, "iconset")->value;
+    /* generate image rotations */
+    if (icon_dup(view->app->renderer, data->iconset->image)) {
+        app_warning("Can't rotate path arrows");
+    }
+
 }
 
 void main_view_free(struct view *view) {
@@ -160,11 +167,11 @@ void main_view_draw(struct view *view) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
                     /* drawing tile */
                     struct tile *tile = &map->tiles[i];
-                    struct nk_image sub = tileset_get_by_index(data->landset, tile->tileset_index);
+                    struct nk_image sub = tileset_get_image_by_index(data->landset, tile->tileset_index);
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
-                    sub = tileset_get_by_index(data->landset, tile->transit_index);
+                    sub = tileset_get_image_by_index(data->landset, tile->transit_index);
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                 }
             }
@@ -195,7 +202,7 @@ void main_view_draw(struct view *view) {
 
         enum nk_widget_layout_states state2 = nk_widget(&space, ctx);
         if (state && state2) {
-            /* drawing map, units */
+            /* drawing units */
             for (int y = frame.y; y < frame.y + frame.h; ++y) {
                 for (int i = y * map->size.x + frame.x, x = frame.x; x < frame.x + frame.w; ++i, ++x) {
                     struct tile *tile = &map->tiles[i];
@@ -213,8 +220,7 @@ void main_view_draw(struct view *view) {
 
                         /* drawing circle under the player */
                         if (u->flags & UF_PLAYER) {
-                            src.y = 16;
-                            sub = nk_subimage_handle(data->iconset.handle, 1176, 1176, src);
+                            sub = tileset_get_image_by_index(data->iconset, 0);
                             nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                         }
 
@@ -229,10 +235,8 @@ void main_view_draw(struct view *view) {
             if (data->action_mode == AM_WALK && data->path.steps) {
                 struct vec2 prev = { player->coords.x / 64, player->coords.y / 64 };
                 for (struct vec2 *i = data->path.steps, *ie = i + arrlenu(data->path.steps); i != ie; ++i) {
-                    src.x = 16 + 72 * get_path_icon(prev, *i);
-                    src.y = 16 + 72;
+                    struct nk_image sub = tileset_get_image_by_index(data->iconset, 16 + get_path_icon(prev, *i));
                     prev = *i;
-                    struct nk_image sub = nk_subimage_handle(data->iconset.handle, 1176, 1176, src);
                     dest.x = (i->x - frame.x) * dest.w - left_margin.x;
                     dest.y = (i->y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
@@ -262,7 +266,7 @@ void main_view_draw(struct view *view) {
 
             for (int y = frame.y; y < frame.h; ++y) {
                 for (int i = y*map->size.x, x = frame.x; x < frame.w; ++i, ++x) {
-                    struct nk_image sub = tileset_get_by_index(data->landset, map->tiles[i].tileset_index);
+                    struct nk_image sub = tileset_get_image_by_index(data->landset, map->tiles[i].tileset_index);
                     dest.x = space.x + x;
                     dest.y = space.y + y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));

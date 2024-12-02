@@ -14,7 +14,7 @@ tileset_get_rect(struct tileset *t, int x, int y, struct rect *r) {
 }
 
 struct nk_image
-tileset_get(struct tileset *t, int x, int y) {
+tileset_get_image(struct tileset *t, int x, int y) {
     struct nk_rect r = {
         t->margin.x + (t->padding.x + t->tile_size.x) * x,
         t->margin.y + (t->padding.y + t->tile_size.y) * y,
@@ -58,5 +58,4 @@ tileset_quad_get_tile_index(struct tileset *t, int n, int neighbors) {
 
     return quad.y * t->tileset_size.x + quad.x;
 }
-
 
