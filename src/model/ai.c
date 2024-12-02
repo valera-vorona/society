@@ -30,7 +30,7 @@ void
 ai_add_task_from_path(struct ai* ai, struct path p) {
     task_free(&ai->task);
     task_init(&ai->task);
-    struct action a = { type: A_WALK };
+    struct action a = { .type = A_WALK };
     for (int i = 0, ie = arrlenu(p.steps); i != ie; ++i) {
         a.act.walk.to.x = p.steps[i].x * 64;
         a.act.walk.to.y = p.steps[i].y * 64;
@@ -62,6 +62,8 @@ gen_rand_action(struct ai *ai, struct action *a) {
     case A_WALK:    a->act.walk.to.x = trim(0, ai->world->map.size.x * 64 - 1, ai->unit->coords.x + ((mt_random_uint32(ai->world->mt) % 3) - 1) * 64);
                     a->act.walk.to.y = trim(0, ai->world->map.size.y * 64 - 1, ai->unit->coords.y + ((mt_random_uint32(ai->world->mt) % 3) - 1) * 64);
                     break;
+
+    default:        break;
     }
 }
 
@@ -91,6 +93,8 @@ ai_unit_step(struct ai *ai, struct action *a) {
                         unit_move(ai->world, ai->unit, dir);
                     }
                     break;
+
+    default:        break;
     }
 
     return 1;

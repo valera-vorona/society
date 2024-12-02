@@ -116,7 +116,9 @@ run(struct app *app) {
 
     while (app->running) {
         /* Input */
+        /*
         Uint64 start_time = SDL_GetTicks64();
+        */
         SDL_Event evt;
         nk_input_begin(ctx);
 

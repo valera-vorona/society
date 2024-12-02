@@ -32,8 +32,10 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
         for (int x = 0; x < size.x; ++x, ++i) {
             float r = .5 + perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
             struct tile tile = {
-                type: individual_distribute(gen_parts, r * 100.),
-                units: { ID_NOTHING }
+                .type = individual_distribute(gen_parts, r * 100.),
+                .tileset_index = 0,
+                .transit_index = 0,
+                .units = { ID_NOTHING }
             };
 
             map->tiles[i] = tile;

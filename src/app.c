@@ -58,7 +58,7 @@ int app_init(struct app *app, uint32_t seed, struct vec2 size) {
     if (val && jq_isobject(val)) {
         jq_foreach_object(pair, val) {
             if (jq_isstring(&pair->value)) {
-                struct world w = { };
+                struct world w;
                 strcpy(fbuf, DATA_PATH);
                 strcat(fbuf, pair->value.value.string);
                 if (world_init(&w, fbuf, &app->mt)) return 1;

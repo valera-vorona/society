@@ -247,7 +247,7 @@ void main_view_draw(struct view *view) {
     nk_end(ctx);
 
     if (nk_begin(ctx, "ui_view", nk_rect(0, 0, win_size.x, win_size.y), NK_WINDOW_NO_SCROLLBAR)) {
-        struct nk_rect content = nk_window_get_content_region(ctx);
+        /* struct nk_rect content = nk_window_get_content_region(ctx); */
         nk_layout_row_dynamic(ctx, 64, 1);
             nk_spacer(ctx);
         nk_layout_row_static(ctx, 64, 64, 1);
@@ -277,7 +277,6 @@ void main_view_draw(struct view *view) {
         struct nk_rect space;                           /* widget space */
         enum nk_widget_layout_states state = nk_widget(&space, ctx);
         if (state) {
-            struct nk_rect src = { 16, 0, 64, 64 };     /* source frame in landset */
             struct nk_rect dest = { 0, 0, 1, 1 };       /* destination frame in the widget */
             /* frame in the world map to draw */
             struct nk_rect frame  = { 0, 0, min(120, map->size.x), min(100, map->size.y) };
@@ -302,7 +301,6 @@ void main_view_draw(struct view *view) {
 
     if (nk_begin(ctx, "info_view", nk_rect(win_size.x - 200, win_size.y - 500, 200, 300), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE)) {
         char str[128];
-        struct nk_rect content = nk_window_get_content_region(ctx);
         nk_layout_row_dynamic(ctx, 20, 1);
 
         if (hovered_tile) {
@@ -356,9 +354,11 @@ gen_minimap(struct view *view) {
         }
     }
 
-    if (SDL_SetRenderTarget(renderer, NULL)) {
+    if (SDL_SetRenderTarget(renderer, old_texture)) {
         app_warning(SDL_GetError());
         return 1;
     }
+
+    return 0;
 }
 

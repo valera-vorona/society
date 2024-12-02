@@ -56,7 +56,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
      * as said in A* algorithm instruction
      */
     struct vec2 finish = { u->coords.x / 64, u->coords.y / 64 };
-    struct node start = { coo: dest, g: .0, h: calc_h(dest, finish), prev: -1 };
+    struct node start = { .coo = dest, .g = .0, .h = calc_h(dest, finish), .prev = -1 };
 
     if (!is_obstacle(get_passability(w, u, &tiles[map->size.x * dest.y + dest.x]))) {
         arrsetcap(data, (int)start.h * 2);
@@ -180,7 +180,7 @@ find_path(struct world *w, struct unit *u, struct vec2 dest) {
             }
 
             if (!s_found) {
-                struct node node = { coo: n->coo, g: current->g + n->pass, h: calc_h(n->coo, finish), prev: current_index };
+                struct node node = { .coo = n->coo, .g = current->g + n->pass, .h = calc_h(n->coo, finish), .prev = current_index };
                 arrput(data, node);
                 open = arrputsorted(data, open, &data[ arrlenu(data) - 1 ]);
             } else if (current->g + n->pass + calc_h(n->coo, finish) < s_found->g + s_found->h) {

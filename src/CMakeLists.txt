@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(society VERSION 0.0.1 LANGUAGES C)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
+
 find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED)
 
