@@ -27,9 +27,9 @@ struct main_view {
     struct path path;
     struct vec2 prev_hovered_coo;
     struct nk_image minimap;
-    struct nk_image unitset;
 
     struct tileset *landset;
+    struct tileset *unitset;
     struct tileset *iconset;
 };
 
@@ -44,10 +44,11 @@ void main_view_init(struct view *view) {
     path_init(&data->path);
     data->prev_hovered_coo.x = -1;
     data->prev_hovered_coo.y = -1;
-    data->unitset = app_get_image(view->app, "unitset");
 
     data->landset = &shgetp_null(view->app->cur_world->value.tilesets, "landset")->value;
+    data->unitset = &shgetp_null(view->app->cur_world->value.tilesets, "unitset")->value;
     data->iconset = &shgetp_null(view->app->cur_world->value.tilesets, "iconset")->value;
+
     /* generate image rotations */
     if (icon_dup(view->app->renderer, data->iconset->image)) {
         app_warning("Can't rotate path arrows");
@@ -124,7 +125,6 @@ void main_view_draw(struct view *view) {
     enum nk_widget_layout_states state;
     struct nk_vec2 *mouse_pos = &ctx->input.mouse.pos;
     struct nk_rect space;                                                   /* widget space */
-    struct nk_rect src = { 16, 16, 64, 64 };                                /* source frame in landset */
     struct nk_rect dest = { 0, 0, data->dest_size.x, data->dest_size.y };   /* destination frame in the widget */
     struct vec2 left_margin;
     struct vec2 half_space;
@@ -224,8 +224,7 @@ void main_view_draw(struct view *view) {
                             nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                         }
 
-                        src.y = 16 + 72;
-                        sub = nk_subimage_handle(data->unitset.handle, 1176, 1176, src);
+                        sub = tileset_get_image_by_index(data->unitset, 16);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
                 }
