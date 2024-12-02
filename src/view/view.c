@@ -16,14 +16,15 @@
  *
  */
 
+/*
+ * VERY INTERESTING FUNCTION!!! nk_widget_is_mouse_clicked(); gg 3132 in nuklear.h
+ */
+
 struct main_view {
     int zoom;
     struct vec2 mid;            /* pixel that should be shown in the middle of the map */
     struct vec2 dest_size;      /* size of shown tile */
-    enum {
-        AM_NONE = 0,
-        AM_WALK
-    } action_mode;
+    enum action_t action;
     struct path path;
     struct vec2 prev_hovered_coo;
     struct nk_image minimap;
@@ -40,7 +41,7 @@ void main_view_init(struct view *view) {
     struct main_view *data = (struct main_view *)view->data;
     data->zoom = data->mid.x = data->mid.y = 0;
     main_view_zoom(view, 0);
-    data->action_mode = AM_WALK;
+    data->action = A_NOTHING;
     path_init(&data->path);
     data->prev_hovered_coo.x = -1;
     data->prev_hovered_coo.y = -1;
@@ -177,7 +178,7 @@ void main_view_draw(struct view *view) {
             }
 
             /* handling mouse press the map_view */
-            if (data->action_mode == AM_WALK && (data->prev_hovered_coo.x != hovered_coo.x || data->prev_hovered_coo.y != hovered_coo.y)) {
+            if (data->action == A_WALK && (data->prev_hovered_coo.x != hovered_coo.x || data->prev_hovered_coo.y != hovered_coo.y)) {
                 if (data->path.steps)
                     path_free(&data->path);
                 data->path = find_path(w, player, hovered_coo);
@@ -231,7 +232,7 @@ void main_view_draw(struct view *view) {
             }
 
             /* drawing the path */
-            if (data->action_mode == AM_WALK && data->path.steps) {
+            if (data->action == A_WALK && data->path.steps) {
                 struct vec2 prev = { player->coords.x / 64, player->coords.y / 64 };
                 for (struct vec2 *i = data->path.steps, *ie = i + arrlenu(data->path.steps); i != ie; ++i) {
                     struct nk_image sub = tileset_get_image_by_index(data->iconset, 16 + get_path_icon(prev, *i));
@@ -244,6 +245,24 @@ void main_view_draw(struct view *view) {
         }
     }
     nk_end(ctx);
+
+    if (nk_begin(ctx, "ui_view", nk_rect(0, 0, win_size.x, win_size.y), NK_WINDOW_NO_SCROLLBAR)) {
+        struct nk_rect content = nk_window_get_content_region(ctx);
+        nk_layout_row_dynamic(ctx, 64, 1);
+            nk_spacer(ctx);
+        nk_layout_row_static(ctx, 64, 64, 1);
+            for (int i = A_NOTHING + 1; i < A_MAX; ++i) {
+                if (i == data->action) {
+                    nk_style_push_style_item(ctx, &ctx->style.button.normal, nk_style_item_color(nk_rgba(127, 0, 0, 127)));
+                    nk_button_image(ctx, tileset_get_image(data->iconset, i, 3));
+                    nk_style_pop_style_item(ctx);
+                } else if (nk_button_image(ctx, tileset_get_image(data->iconset, i, 3))) {
+                    data->action = i;
+                }
+            }
+    }
+    nk_end(ctx);
+
     nk_style_pop_style_item(ctx);
 
     if (nk_begin(ctx, "mini_map_view", nk_rect(win_size.x - 200, 0, 200, 200), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_TITLE)) {
