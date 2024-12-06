@@ -1,0 +1,19 @@
+{
+    "app": {
+        "name": "Society",
+        "version": "0.0.1",
+        "comment": "video modes: windowed, fullscreen",
+        "video mode": "fullscreen"
+    },
+    "images": {
+        "menu_bg": {
+            "comment": "access can be static, streaming or target, default is static",
+            "file": "menu_bg.jpg"
+        }
+    },
+    "worlds": {
+        "Earth": "earth.json"
+    },
+    "cur_world": "Earth" 
+}
+

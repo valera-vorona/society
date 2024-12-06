@@ -72,7 +72,7 @@ read_images(struct jq_value *json) {
                     access = SDL_TEXTUREACCESS_STATIC;
                 }
 
-                snprintf(buf, sizeof(buf), DATA_PATH "%s", file);
+                snprintf(buf, sizeof(buf), BINARY_PATH "%s", file);
                 tex = nk_sdl_device_upload_image(buf, access);
                 if (!tex) return NULL;
                 shput(rv, pair->key, nk_image_ptr(tex));

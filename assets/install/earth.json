@@ -1,0 +1,89 @@
+{
+    "fps": 60.0,
+    "tilesets": {
+        "landset": {
+            "type": "quad",
+            "file": "landset.png",
+            "comment": "access can be static, streaming or target, default is static",
+            "size": {
+                "margin": [16, 16],
+                "padding": [8, 8],
+                "tile": [64, 64],
+                "tileset": [16, 16],
+                "comment": "quad is optional, it's made for transitional tilesets, default quad is [1, 1]",
+                "quad": [4, 4]
+            }
+        },
+        "unitset": {
+            "type": "simple",
+            "file": "unitset.png",
+            "size": {
+                "margin": [16, 16],
+                "padding": [8, 8],
+                "tile": [64, 64],
+                "tileset": [16, 16]
+            }
+        },
+        "iconset": {
+            "type": "simple",
+            "file": "iconset.png",
+            "access": "target",
+            "size": {
+                "margin": [16, 16],
+                "padding": [8, 8],
+                "tile": [64, 64],
+                "tileset": [16, 16]
+            }
+        }
+    },
+    "land": {
+        "tileset": "landset",
+        "tiles": []
+    },
+    "tiles": [
+        {
+            "id": 0,
+            "name": "unknown",
+            "description": "",
+            "gen-part": 0.0
+        }, {
+            "id": 1,
+            "name": "ocean",
+            "description": "",
+            "gen-part": 45.0
+        }, {
+            "id": 2,
+            "name": "sea",
+            "description": "",
+            "gen-part": 5.0,
+            "is-water-line": true
+        }, {
+            "id": 3,
+            "name": "sand",
+            "description": "",
+            "gen-part": 1.0
+        }, {
+            "id": 4,
+            "name": "plain",
+            "description": "",
+            "gen-part": 49.0
+        }
+    ],
+    "units": [
+        {
+            "id": 0,
+            "name": "unknown",
+            "probs": {},
+            "pass": {}
+        }, {
+            "id": 1,
+            "name": "human",
+            "probs": { "plain": 0.001 },
+            "pass": {
+                "sand": 1.5,
+                "plain": 1.0
+            }
+        }
+    ]
+}
+

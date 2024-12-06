@@ -48,8 +48,8 @@ doc/
 *.bak
 *.swp
 
-# Assets
-assets/
+# Binary assets
+assets/git-lfs-files
 
 #Images
 #icon/

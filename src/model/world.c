@@ -72,7 +72,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
 
             k = jq_find(v, "file", 0);
             if (k && jq_isstring(k)) {
-                snprintf(buf, sizeof(buf), DATA_PATH "%s", k->value.string);
+                snprintf(buf, sizeof(buf), BINARY_PATH "%s", k->value.string);
                 void *tex = nk_sdl_device_upload_image(buf, access);
                 if (!tex) return 1;
                 t.image = nk_image_ptr(tex);
