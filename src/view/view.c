@@ -88,9 +88,6 @@ void main_view_center_at(struct view *view, struct vec2 coo) {
     v->mid.y = trim(0, 1000000, coo.y);
 }
 
-#define min(a, b) (a) < (b) ? (a) : (b)
-#define max(a, b) (a) > (b) ? (a) : (b)
-
 int get_path_icon(struct vec2 prev, struct vec2 cur) {
     struct vec2 delta = { cur.x - prev.x, cur.y - prev.y };
     switch (delta.x) {
@@ -307,6 +304,8 @@ void main_view_draw(struct view *view) {
             snprintf(str, sizeof(str), "Terrian: %s", map->tile_types[hovered_tile->type].name);
             nk_label(ctx, str, NK_TEXT_LEFT);
             snprintf(str, sizeof(str), "Coordinates: %i:%i", hovered_coo.x, hovered_coo.y);
+            nk_label(ctx, str, NK_TEXT_LEFT);
+            snprintf(str, sizeof(str), "Humidity: %f", hovered_tile->humidity);
             nk_label(ctx, str, NK_TEXT_LEFT);
         } else {
             nk_label(ctx, "Terrian:" , NK_TEXT_LEFT);

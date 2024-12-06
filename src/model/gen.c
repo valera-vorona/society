@@ -4,6 +4,7 @@
 #include "tileset.h"
 #include "stb_ds.h"
 #include <malloc.h>
+#include <math.h>
 
 int individual_distribute(float *items, float v) {
     int i, ie;
@@ -86,17 +87,62 @@ transit_map(struct world *w) {
     }
 }
 
+static float
+tile_get_evaporation(struct map *m, struct tile *t, int x, int y) {
+    if (t->height >= .0) {
+        return .0;
+    } else {
+        if (y > 512)
+            y = 1024 - y;
+
+        return lerp(1, 100, (float)y / 512.);
+    }
+}
+
+#define PI 3.14
+
+struct wind {
+    struct rect area;
+    int jet_latitude;
+    float persistence;
+};
+
+struct wind wind = { {0, 512 - 150, 1024, 149}, 512, .96 };
+
+static void gen_tile_humidity(struct map *m, struct wind *wind, int x, int y) {
+    struct tile *tile = map_get_tile(m, x, y);
+
+    if (tile->height <= .0) {
+        tile->humidity = .0;
+    } else {
+        struct vec2 size = m->size;
+        int height = wind->jet_latitude - y;
+        int inc = height > 0 ? 1 : -1;
+        float angle_step = PI/2/height;
+        float angle = .0;
+        float influence = 1.;
+        float hum = .0;
+        for (int i = 0, ie = height; i != ie; i += inc, angle += angle_step, influence *= wind->persistence) {
+            float t = tan(angle);
+            if (t > abs(height))
+                break;
+
+            struct vec2 src_coo = { trim(0, size.x - 1, x + i), trim(0, size.y - 1, y + t) };
+            struct tile *src = map_get_tile(m, src_coo.x, src_coo.y);
+            if (src->height <= .0)
+                hum += influence * tile_get_evaporation(m, src, src_coo.x, src_coo.y);
+        }
+        tile->humidity = hum;
+    }
+}
+
 static void
-gen_humidity(struct world *w) {
+gen_humidity(struct world *w, struct wind *wind) {
     struct map *map = &w->map;
 
-    struct vec2 size = map->size;
-
-    for (int i = 0, y = 0; y < size.y; ++y) {
-        for (int x = 0; x < size.x; ++x, ++i) {
-            struct tile *tile = map->tiles + i;
-            if (tile->height <= .0)
-                tile->humidity  = tile->height;
+    for (int y = wind->area.y; y < wind->jet_latitude; ++y) {
+        for (int x = wind->area.x; x < wind->area.w; ++x) {
+            gen_tile_humidity(map, wind, x, y);
         }
     }
 }
@@ -155,7 +201,7 @@ gen_unit_ais(struct world *w) {
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
     transit_map(w);
-    gen_humidity(w);
+    gen_humidity(w, &wind);
     gen_units(w);
     gen_unit_flags(w);
     gen_unit_ais(w);

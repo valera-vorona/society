@@ -31,5 +31,8 @@ float perlin2d_noise_x(struct perlin2d *p, float fx, float fy, int octaves, floa
 float lerp(float a_, float b_, float t_);
 int trim(int min, int max, int t_);
 
+#define min(a, b) (a) < (b) ? (a) : (b)
+#define max(a, b) (a) > (b) ? (a) : (b)
+
 #endif /* _RAND_H_ */
 
