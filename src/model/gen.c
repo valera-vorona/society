@@ -42,6 +42,7 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
                 .tileset_index = 0,
                 .transit_index = 0,
                 .height = r - water_line,
+                .humidity = 0,
                 .units = { ID_NOTHING }
             };
 
@@ -116,15 +117,22 @@ static void gen_tile_humidity(struct map *m, struct wind *wind, int x, int y) {
         tile->humidity = .0;
     } else {
         struct vec2 size = m->size;
-        int height = wind->jet_latitude - y;
-        int inc = height > 0 ? 1 : -1;
-        float angle_step = PI/2/height;
         float angle = .0;
         float influence = 1.;
         float hum = .0;
+        int inc;
+        float angle_step = PI/2/(wind->jet_latitude - wind->area.y);
+        int height = wind->jet_latitude - y;
+        if (height > 0) {
+            inc = 1;
+            angle_step = -angle_step;
+        } else {
+            inc = -1;
+        }
+
         for (int i = 0, ie = height; i != ie; i += inc, angle += angle_step, influence *= wind->persistence) {
             float t = tan(angle);
-            if (t > abs(height))
+            if (abs(t) > abs(height))
                 break;
 
             struct vec2 src_coo = { trim(0, size.x - 1, x + i), trim(0, size.y - 1, y + t) };
@@ -140,8 +148,8 @@ static void
 gen_humidity(struct world *w, struct wind *wind) {
     struct map *map = &w->map;
 
-    for (int y = wind->area.y; y < wind->jet_latitude; ++y) {
-        for (int x = wind->area.x; x < wind->area.w; ++x) {
+    for (int y = wind->area.y, ye = y + wind->area.h; y != ye; ++y) {
+        for (int x = wind->area.x, xe = x + wind->area.w; x != xe; ++x) {
             gen_tile_humidity(map, wind, x, y);
         }
     }
