@@ -83,12 +83,15 @@ struct tile_t {
     char *name;         /* not strduped */
     char *description;  /* not strduped */
     float gen_part;
+    int is_water_line;     /* boolean */
 };
 
 struct tile {
     int type;
     int tileset_index;
     int transit_index;
+    float height;
+    float humidity;
     int units[1];
 };
 

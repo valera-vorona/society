@@ -166,11 +166,24 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 }
 
                 p = jq_find(v, "gen-part", 0);
-                if (jq_isnumber(p)) {
+                if (p && jq_isnumber(p)) {
                     t.gen_part = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
                 } else {
-                    app_warning("'gen-part' is not a number");
+                    app_warning("'gen-part' is not found or not a number");
                     return 1;
+                }
+
+                p = jq_find(v, "is-water-line", 0);
+                if (p) {
+                    if (jq_isboolean(p)) {
+                        t.is_water_line = p->type == JQ_V_TRUE;
+                    } else {
+                        app_warning("'is-water-line' is not boolean");
+                        return 1;
+                    }
+                } else {
+                    /* setting default is_water_line */
+                    t.is_water_line = 0;
                 }
 
                 arrput(w->map.tile_types, t);

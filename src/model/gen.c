@@ -21,9 +21,14 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     map->tiles = malloc(sizeof(struct tile) * size.x * size.y);
 
     float *gen_parts = NULL;
+    float water_sum = .0;
+    float water_line = .0;;
     arrsetlen(gen_parts, arrlenu(map->tile_types));
     for (int i = 0, ie = arrlenu(map->tile_types); i != ie; ++i) {
         gen_parts[i] = map->tile_types[i].gen_part;
+        water_sum += gen_parts[i];
+        if (map->tile_types[i].is_water_line)
+            water_line = water_sum / 100.;
     }
 
     struct perlin2d perlin;
@@ -35,6 +40,7 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
                 .type = individual_distribute(gen_parts, r * 100.),
                 .tileset_index = 0,
                 .transit_index = 0,
+                .height = r - water_line,
                 .units = { ID_NOTHING }
             };
 
@@ -76,6 +82,21 @@ transit_map(struct world *w) {
 
             map->tiles[i].tileset_index = tileset_quad_get_tile_index(t, tile->type, 0);
             map->tiles[i].transit_index = tileset_quad_get_tile_index(t, tile->type, quad);
+        }
+    }
+}
+
+static void
+gen_humidity(struct world *w) {
+    struct map *map = &w->map;
+
+    struct vec2 size = map->size;
+
+    for (int i = 0, y = 0; y < size.y; ++y) {
+        for (int x = 0; x < size.x; ++x, ++i) {
+            struct tile *tile = map->tiles + i;
+            if (tile->height <= .0)
+                tile->humidity  = tile->height;
         }
     }
 }
@@ -134,6 +155,7 @@ gen_unit_ais(struct world *w) {
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
     transit_map(w);
+    gen_humidity(w);
     gen_units(w);
     gen_unit_flags(w);
     gen_unit_ais(w);
