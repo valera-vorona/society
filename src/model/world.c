@@ -134,6 +134,50 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         }
     }
 
+    /* Reading winds */
+    w->winds = NULL;
+    val = jq_find(w->json, "winds", 0);
+    if (val) {
+        if (jq_isarray(val)) {
+            jq_foreach_array(v, val) {
+                if (jq_isobject(v)) {
+                    struct wind wind;
+                    struct jq_value *p = jq_find(v, "jet_latitude", 0);
+                    if (p && jq_isnumber(p)) {
+                        wind.jet_latitude = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
+                    } else {
+                        app_warning("'jet_latitude' is not found or not a number");
+                        return 1;
+                    }
+
+                    p = jq_find(v, "dest_latitude", 0);
+                    if (p && jq_isnumber(p)) {
+                        wind.dest_latitude = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
+                    } else {
+                        app_warning("'dest_latitude' is not found or not a number");
+                        return 1;
+                    }
+
+                    p = jq_find(v, "persistence", 0);
+                    if (p && jq_isnumber(p)) {
+                        wind.persistence = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
+                    } else {
+                        app_warning("'persistence' is not found or not a number");
+                        return 1;
+                    }
+
+                    arrput(w->winds, wind);
+                } else {
+                    app_warning("'wind' is not an object");
+                    return 1;
+                }
+            }
+        } else {
+            app_warning("'winds' is not an array");
+            return 1;
+        }
+    }
+
     /* Reading tile types */
     w->map.tile_types = NULL;
     val = jq_find(w->json, "tiles", 0);

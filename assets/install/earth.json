@@ -40,6 +40,15 @@
         "tileset": "landset",
         "tiles": []
     },
+    "winds": [
+        {
+            "comment": "'jet_latitude' is where the wind starts from, 'dest_latitude' is where it comes to, 90. is North pole, 0. is Equator, -90. is South pole",
+            "name": "North passat",
+            "jet_latitude": 30,
+            "dest_latitude": 0,
+            "persistence": 0.98
+        }
+    ],
     "tiles": [
         {
             "id": 0,

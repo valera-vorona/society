@@ -217,6 +217,18 @@ struct receipt {
  * world 
  */
 
+/*
+'jet_latitude' is where the wind starts from,
+'dest_latitude' is where it comes to,
+90. is North pole, 0. is Equator, -90. is South pole",
+*/
+
+struct wind {
+    float jet_latitude;
+    float dest_latitude;
+    float persistence;
+};
+
 struct tileset {
     struct vec2 margin;
     struct vec2 padding;
@@ -236,6 +248,7 @@ struct world {
     struct jq_value *json;
     struct mt_state *mt;
     float fps;
+    struct wind *winds;
     struct tileset_hash *tilesets;
     struct ai *player_ai;
     struct map map;
