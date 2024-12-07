@@ -241,6 +241,70 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         return 1;
     }
 
+    /* Reading covers */
+    w->map.covers = NULL;
+    val = jq_find(w->json, "covers", 0);
+    if (val) {
+        if (jq_isarray(val)) {
+            jq_foreach_array(v, val) {
+                if (jq_isobject(v)) {
+                    struct cover c;
+                    c.types = NULL;
+                    struct jq_value *p = jq_find(v, "id", 0);
+                    if (p && jq_isinteger(p)) {
+                        c.id = p->value.integer;
+                    } else {
+                        app_warning("'id' of cover is not found or not an integer");
+                        return 1;
+                    }
+
+                    p = jq_find(v, "name", 0);
+                    if (p && jq_isstring(p)) {
+                        c.name = p->value.string;
+                    } else {
+                        app_warning("'name' of cover is not found or not a string");
+                        return 1;
+                    }
+
+                    p = jq_find(v, "types", 0);
+                    if (p && jq_isarray(p)) {
+                        struct jq_value *k;
+                        jq_foreach_array(k, p) {
+                            if (jq_isstring(k)) {
+                                int found = 0;
+                                for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
+                                    if (!strcmp(k->value.string, w->map.tile_types[i].name)) {
+                                        arrput(c.types, w->map.tile_types[i].id);
+                                        found = 1;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    app_warning("No tile type found with name '%s'", k->value.string);
+                                    return 1;
+                                }
+                            } else {
+                                app_warning("'cover.type' is not a string");
+                                return 1;
+                            }
+                        }
+                    } else {
+                        app_warning("'types' is not found or not an array");
+                        return 1;
+                    }
+
+                    arrput(w->map.covers, c);
+                } else {
+                    app_warning("'cover' is not an object");
+                    return 1;
+                }
+            }
+        } else {
+            app_warning("'covers' is not an array");
+            return 1;
+        }
+    }
+
     /* Reading unit types */
     w->unit_types = NULL;
     val = jq_find(w->json, "units", 0);

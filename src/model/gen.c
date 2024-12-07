@@ -16,6 +16,10 @@ int individual_distribute(float *items, float v) {
     return i;
 }
 
+/*
+ * Height
+ */
+
 static void
 gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     map->size = size;
@@ -87,6 +91,10 @@ transit_map(struct world *w) {
         }
     }
 }
+
+/*
+ * Humidity
+ */
 
 static float
 tile_get_evaporation(struct map *m, struct tile *t, int x, int y) {
@@ -163,6 +171,23 @@ gen_humidity(struct world *w) {
     }
 }
 
+/*
+ * Types
+ */
+
+static void
+gen_types(struct map *m) {
+    for (int i = 0, y = 0, ye = m->size.y; y != ye; ++y) {
+        for (int x = 0, xe = m->size.x; x != xe; ++i, ++x) {
+
+        }
+    }
+}
+
+/*
+ * Units
+ */
+
 static void 
 gen_units(struct world *w) {
     float *probs = NULL;
@@ -214,10 +239,15 @@ gen_unit_ais(struct world *w) {
     }
 }
 
+/*
+ * Main gen function
+ */
+
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
     transit_map(w);
     gen_humidity(w);
+    gen_types(&w->map);
     gen_units(w);
     gen_unit_flags(w);
     gen_unit_ais(w);

@@ -78,6 +78,22 @@
             "gen-part": 49.0
         }
     ],
+    "covers": [
+        {   "id": 0,
+            "name": "unknown",
+            "types": []
+        }, {
+            "id": 1,
+            "name": "desert",
+            "description": "",
+            "types": ["plain"]
+        }, {
+            "id": 2,
+            "name": "forest",
+            "description": "",
+            "types": ["plain"]
+        }
+    ],
     "units": [
         {
             "id": 0,

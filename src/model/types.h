@@ -86,6 +86,13 @@ struct tile_t {
     int is_water_line;     /* boolean */
 };
 
+struct cover {
+    int id;
+    char *name;         /* not strduped */
+    char *description;  /* not strduped */
+    int *types;
+};
+
 struct tile {
     int type;
     int tileset_index;
@@ -98,6 +105,7 @@ struct tile {
 struct map {
     struct vec2 size;
     struct tile_t *tile_types;
+    struct cover *covers;
     struct tile *tiles;
 };
 
