@@ -586,7 +586,7 @@ JQ_API enum jq_token_type jq_handle_lexer_error(struct jq_handler *h, jq_size st
 
 #define jq_iswc(c) (JQ_STRCHR(" \n\r\t", c) != JQ_NULL)
 #define jq_isesc(c) (JQ_STRCHR("\"\\/bfnrt", c) != JQ_NULL)
-#define jq_isnum(c) (JQ_STRCHR("-0123456789", c) != JQ_NULL)
+#define jq_isnum(c) (JQ_STRCHR("0123456789", c) != JQ_NULL)
 #define jq_isint(c) (JQ_STRCHR("123456789", c) != JQ_NULL)
 
 /* This function cannot be implemented as a macro because c can be a return of a function */
@@ -755,11 +755,17 @@ jq_get_token(struct jq_handler *h) {
             if (jq_iswc(c)) continue;
             if (jq_isnum(c)) {
                 jq_lexer_unget(h);
+                h->val = &h->buf[h->i];
                 lexer_state = JQ_L_NUM_BEGIN;
                 continue;
             }
 
             switch (c) {
+            case '-':
+                h->val = &h->buf[h->i - 1];
+                lexer_state = JQ_L_NUM_BEGIN;
+                continue;
+
             case '"':
                 h->val = &h->buf[h->i];
                 lexer_state = JQ_L_STRING;
@@ -789,13 +795,10 @@ jq_get_token(struct jq_handler *h) {
             break;
 
         case JQ_L_NUM_BEGIN:
-                h->val = &h->buf[h->i - 1];
-
-                switch (c) {
-                case '-':   lexer_state = JQ_L_NUM_INT1_9; break;
-                case '0':   lexer_state = JQ_L_NUM_POINT; break;
-                default:    jq_lexer_unget(h); lexer_state = JQ_L_NUM_INT1_9; break;
-                }
+            switch (c) {
+            case '0':   lexer_state = JQ_L_NUM_POINT; break;
+            default:    jq_lexer_unget(h); lexer_state = JQ_L_NUM_INT1_9; break;
+            }
             continue;
 
         case JQ_L_NUM_POINT:
@@ -807,7 +810,7 @@ jq_get_token(struct jq_handler *h) {
             continue;
 
         case JQ_L_NUM_INT0_9:
-            if (JQ_STRCHR("0123456789", c) == JQ_NULL) {
+            if (!jq_isnum(c)) {
                 if (c == '.') {
                     lexer_state = JQ_L_NUM_FRACTION;
                 } else {
@@ -829,7 +832,7 @@ jq_get_token(struct jq_handler *h) {
             continue;
 
         case JQ_L_NUM_FRACTION:
-            if (JQ_STRCHR("0123456789", c) == JQ_NULL) {
+            if (!jq_isnum(c)) {
                 if (JQ_STRCHR("Ee", c) != JQ_NULL) {
                     lexer_state = JQ_L_NUM_EXPO_PLUS_MINUS;
                 } else {
@@ -841,7 +844,7 @@ jq_get_token(struct jq_handler *h) {
         case JQ_L_NUM_EXPO_PLUS_MINUS:
             if (JQ_STRCHR("+-", c) != JQ_NULL) {
                 lexer_state = JQ_L_NUM_EXPO_INT1;
-            } else if (JQ_STRCHR("0123456789", c) != JQ_NULL) {
+            } else if (jq_isnum(c)) {
                 lexer_state = JQ_L_NUM_EXPO_INT;
             } else {
                 /* Nothing found after exponent E(e) */
@@ -850,7 +853,7 @@ jq_get_token(struct jq_handler *h) {
             continue;
 
         case JQ_L_NUM_EXPO_INT1:
-            if (JQ_STRCHR("0123456789", c) == JQ_NULL) {
+            if (!jq_isnum(c)) {
                 /* Nothing found after exponent E(e)+- */
                 return jq_handle_lexer_error(h, start_pos, JQ_ERR_LEXER_EXPONENT_ERROR);
             } else {
@@ -859,7 +862,7 @@ jq_get_token(struct jq_handler *h) {
             continue;
 
         case JQ_L_NUM_EXPO_INT:
-            if (JQ_STRCHR("0123456789", c) == JQ_NULL) {
+            if (!jq_isnum(c)) {
                 return jq_finish_number(h);
             }
             continue;
@@ -879,7 +882,6 @@ jq_finish_number(struct jq_handler *h) {
     h->subst_char = h->buf[h->subst_pos];
     h->buf[h->subst_pos] = '\0'; /* and setting it to null terminator, then we should restore it */
 #endif
-
     return JQ_T_NUMBER;
 }
 
@@ -901,7 +903,7 @@ jq_handle_lexer_error(struct jq_handler *h, jq_size start_pos, enum jq_error err
 JQ_INLINE enum jq_parser_state jq_parser_get_state(struct jq_handler *h);
 JQ_INLINE void jq_parser_push_state(struct jq_handler *h, enum jq_parser_state state);
 JQ_INLINE enum jq_parser_state jq_parser_pop_state(struct jq_handler *h);
-#define jq_parser_inc_cnt(h) (h)->cnt = ++((h)->cnt) & 3
+#define jq_parser_inc_cnt(h) (h)->cnt = ((h)->cnt + 1) & 3
 
 JQ_API jq_bool
 jq_parse(struct jq_handler *h) {
