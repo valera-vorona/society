@@ -305,6 +305,8 @@ void main_view_draw(struct view *view) {
             nk_label(ctx, str, NK_TEXT_LEFT);
             snprintf(str, sizeof(str), "Coordinates: %i:%i", hovered_coo.x, hovered_coo.y);
             nk_label(ctx, str, NK_TEXT_LEFT);
+            snprintf(str, sizeof(str), "Height: %f", hovered_tile->height);
+            nk_label(ctx, str, NK_TEXT_LEFT);
             snprintf(str, sizeof(str), "Humidity: %f", hovered_tile->humidity);
             nk_label(ctx, str, NK_TEXT_LEFT);
         } else {

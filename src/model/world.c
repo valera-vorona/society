@@ -5,6 +5,7 @@
 #include "stb_ds.h"
 
 static int get_vec2(struct jq_value *v, struct vec2 *out);
+static int get_range(struct jq_value *v, float *out);
 
 int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     char buf[4096];
@@ -182,6 +183,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     w->map.tile_types = NULL;
     val = jq_find(w->json, "tiles", 0);
     if (val && jq_isarray(val)) {
+        int default_found = 0;
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
                 struct tile_t t;
@@ -217,6 +219,21 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     return 1;
                 }
 
+                p = jq_find(v, "default", 0);
+                if (p) {
+                    if (jq_isboolean(p)) {
+                        t.is_default = p->type == JQ_V_TRUE;
+                        if (t.is_default)
+                            ++default_found;
+                    } else {
+                        app_warning("'default' is not boolean");
+                        return 1;
+                    }
+                } else {
+                    /* setting default is_default */
+                    t.is_default = 0;
+                }
+
                 p = jq_find(v, "is-water-line", 0);
                 if (p) {
                     if (jq_isboolean(p)) {
@@ -236,6 +253,11 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 return 1;
             }
         }
+
+        if (default_found != 1) {
+            app_warning("Only one of 'tiles' should have key 'default': true");
+            return 1;
+        }
     } else {
         app_warning("'tiles' doesn't exist or is not an array");
         return 1;
@@ -249,47 +271,42 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
             jq_foreach_array(v, val) {
                 if (jq_isobject(v)) {
                     struct cover c;
-                    c.types = NULL;
-                    struct jq_value *p = jq_find(v, "id", 0);
-                    if (p && jq_isinteger(p)) {
-                        c.id = p->value.integer;
-                    } else {
-                        app_warning("'id' of cover is not found or not an integer");
-                        return 1;
-                    }
-
-                    p = jq_find(v, "name", 0);
+                    struct jq_value *p = jq_find(v, "type", 0);
                     if (p && jq_isstring(p)) {
-                        c.name = p->value.string;
-                    } else {
-                        app_warning("'name' of cover is not found or not a string");
-                        return 1;
-                    }
-
-                    p = jq_find(v, "types", 0);
-                    if (p && jq_isarray(p)) {
-                        struct jq_value *k;
-                        jq_foreach_array(k, p) {
-                            if (jq_isstring(k)) {
-                                int found = 0;
-                                for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
-                                    if (!strcmp(k->value.string, w->map.tile_types[i].name)) {
-                                        arrput(c.types, w->map.tile_types[i].id);
-                                        found = 1;
-                                        break;
-                                    }
-                                }
-                                if (!found) {
-                                    app_warning("No tile type found with name '%s'", k->value.string);
-                                    return 1;
-                                }
-                            } else {
-                                app_warning("'cover.type' is not a string");
-                                return 1;
+                        int type = -1;
+                        for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
+                            if (!strcmp(p->value.string, w->map.tile_types[i].name)) {
+                                type = w->map.tile_types[i].id;
+                                break;
                             }
                         }
+                        if (type == -1) {
+                            app_warning("No tile type found with name '%s'", p->value.string);
+                            return 1;
+                        }
+                        c.type = type;
                     } else {
-                        app_warning("'types' is not found or not an array");
+                        app_warning("'type' of cover is not found or not a string");
+                        return 1;
+                    }
+
+                    p = jq_find(v, "height", 0);
+                    if (p) {
+                        if (get_range(p, c.height))
+                            return 1;
+                        printf("height: %f:%f\n", c.height[0], c.height[1]);
+                    } else {
+                        app_warning("'height' of cover doest't exist");
+                        return 1;
+                    }
+
+                    p = jq_find(v, "humidity", 0);
+                    if (p) {
+                        if (get_range(p, c.humidity))
+                            return 1;
+                        printf("humidity: %f:%f\n", c.humidity[0], c.humidity[1]);
+                    } else {
+                        app_warning("'humidity' of cover doest't exist");
                         return 1;
                     }
 
@@ -453,11 +470,58 @@ get_vec2(struct jq_value *v, struct vec2 *out) {
             return 1;
         }
     } else {
-        app_warning("'size' should be either an array of two elements (x and y) or an object of two keys (x and y)");
+        app_warning("'size' should be either an array of two elements ('x' and 'y') or an object of two keys ('x' and 'y')");
         return 1;
     }
 
     *out = rv;
+    return 0;
+}
+
+static int
+get_range(struct jq_value *v, float *out) {
+    float rv[2];
+    struct jq_value *k;
+
+    if (jq_isarray(v) && jq_array_length(v) == 2) {
+        k = jq_find(v, "0", 0);
+        if (k && jq_isnumber(k)) {
+            rv[0] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+        } else {
+            app_warning("'range[0]' is not a number");
+            return 1;
+        }
+
+        k = jq_find(v, "1", 0);
+        if (k && jq_isnumber(k)) {
+            rv[1] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+        } else {
+            app_warning("'range[1]' is not a number");
+            return 1;
+        }
+    } else if (jq_isobject(v)) {
+        k = jq_find(v, "min");
+        if (k && jq_isnumber(k)) {
+            rv[0] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+        } else {
+            app_warning("'range.min' is not a number");
+            return 1;
+        }
+
+        k = jq_find(v, "max");
+        if (k && jq_isnumber(k)) {
+            rv[1] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+        } else {
+            app_warning("'range.max' is not a number");
+            return 1;
+        }
+    } else {
+        app_warning("'range' should be either an array of two elements or an object of two keys ('min' and 'max')");
+        return 1;
+    }
+
+    out[0] = rv[0];
+    out[1] = rv[1];
     return 0;
 }
 

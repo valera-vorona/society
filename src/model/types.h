@@ -83,14 +83,14 @@ struct tile_t {
     char *name;         /* not strduped */
     char *description;  /* not strduped */
     float gen_part;
-    int is_water_line;     /* boolean */
+    int is_default;
+    int is_water_line;  /* boolean */
 };
 
 struct cover {
-    int id;
-    char *name;         /* not strduped */
-    char *description;  /* not strduped */
-    int *types;
+    int type;           /* output tile type id */
+    float height[2];    /* height range */
+    float humidity[2];  /* humidity range */
 };
 
 struct tile {

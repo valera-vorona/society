@@ -5,6 +5,9 @@
 #include "stb_ds.h"
 #include <malloc.h>
 #include <math.h>
+#include <assert.h>
+
+#define between(a, b, e) ((a) >= (b) && (a) < (e))
 
 int individual_distribute(float *items, float v) {
     int i, ie;
@@ -40,13 +43,13 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
     perlin2d_init(&perlin, mt);
     for (int i = 0, y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x, ++i) {
-            float r = .5 + perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
+            float r = perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
             struct tile tile = {
-                .type = individual_distribute(gen_parts, r * 100.),
+                //.type = individual_distribute(gen_parts, r * 100.),
                 .tileset_index = 0,
                 .transit_index = 0,
-                .height = r - water_line,
-                .humidity = 0,
+                .height = r,// - water_line,
+                .humidity = .0,
                 .units = { ID_NOTHING }
             };
 
@@ -94,6 +97,8 @@ transit_map(struct world *w) {
 
 /*
  * Humidity
+ * returns evaporation in within .0 1. for water and 0. for land (if height >= .0)
+ * the closer the tile to the equator is the heigher evaporation it has
  */
 
 static float
@@ -103,18 +108,23 @@ tile_get_evaporation(struct map *m, struct tile *t, int x, int y) {
     } else {
         if (y > 512)
             y = 1024 - y;
-
-        return lerp(1, 100, (float)y / 512.);
+        assert(y >= 0);
+        return (float)y / 512.;
     }
 }
 
 #define PI 3.14
 
-static void gen_tile_humidity(struct map *m, int jet_latitude, int dest_latitude, float persistence, int x, int y) {
+/*
+ * returns humidity within .0 .1 for land and 1. for water (if height <= .0)
+ */
+
+static void
+gen_tile_humidity(struct map *m, int jet_latitude, int dest_latitude, float persistence, int x, int y) {
     struct tile *tile = map_get_tile(m, x, y);
 
     if (tile->height <= .0) {
-        tile->humidity = .0;
+        tile->humidity = 0.;
     } else {
         struct vec2 size = m->size;
         float angle = .0;
@@ -123,7 +133,11 @@ static void gen_tile_humidity(struct map *m, int jet_latitude, int dest_latitude
         int inc;
         float angle_step = PI/2/(jet_latitude - dest_latitude);
         int height = jet_latitude - y;
-        if (height > 0) {
+
+        if (height == 0) {
+            tile->humidity = .0;
+            return;
+        } else if (height > 0) {
             inc = 1;
             angle_step = -angle_step;
         } else {
@@ -140,7 +154,8 @@ static void gen_tile_humidity(struct map *m, int jet_latitude, int dest_latitude
             if (src->height <= .0)
                 hum += influence * tile_get_evaporation(m, src, src_coo.x, src_coo.y);
         }
-        tile->humidity = hum;
+
+        tile->humidity = hum / (float)abs(height);
     }
 }
 
@@ -172,15 +187,31 @@ gen_humidity(struct world *w) {
 }
 
 /*
- * Types
+ * Covers
  */
 
 static void
-gen_types(struct map *m) {
-    for (int i = 0, y = 0, ye = m->size.y; y != ye; ++y) {
-        for (int x = 0, xe = m->size.x; x != xe; ++i, ++x) {
-
+gen_covers(struct world *w) {
+    struct map *m = &w->map;
+    struct cover *c = m->covers;
+    int default_type = 0;
+    for (int i = 0, ie = arrlenu(m->tile_types); i != ie; ++i) {
+        if (m->tile_types[i].is_default) {
+            default_type = m->tile_types[i].id;
+            break;
         }
+    }
+
+    for (int i = 0, ie = m->size.x * m->size.y; i != ie; ++i) {
+        struct tile *t = m->tiles + i;
+        int type = default_type;
+        for (int j = 0, je = arrlenu(c); j != je; ++j) {
+            if (between(t->height, c[j].height[0], c[j].height[1]) && between(t->humidity, c[j].humidity[0], c[j].humidity[1])) {
+                type = c[j].type;
+                break;
+            }
+        }
+        t->type = type;
     }
 }
 
@@ -245,9 +276,9 @@ gen_unit_ais(struct world *w) {
 
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_map(&w->map, w->mt, size);
-    transit_map(w);
     gen_humidity(w);
-    gen_types(&w->map);
+    gen_covers(w);
+    transit_map(w);
     gen_units(w);
     gen_unit_flags(w);
     gen_unit_ais(w);
