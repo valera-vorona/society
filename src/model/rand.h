@@ -29,6 +29,8 @@ float perlin2d_noise_x(struct perlin2d *p, float fx, float fy, int octaves, floa
 
 /* linear interpolation of t_ between a_ and b_ where 0.0 <= t_ <= 1.0 */ 
 float lerp(float a_, float b_, float t_);
+/* Interpolation based on items dynamic array (sdb_ds.h)  where 0.0 <= v <= 1.0 */
+int individual_distribute(float *items, float v);
 int trim(int min, int max, int t_);
 
 #define min(a, b) (a) < (b) ? (a) : (b)

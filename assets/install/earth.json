@@ -54,28 +54,23 @@
             "id": 0,
             "name": "unknown",
             "description": "",
-            "gen-part": 0.0
         }, {
             "id": 1,
             "name": "ocean",
             "description": "",
-            "gen-part": 45.0
         }, {
             "id": 2,
             "name": "sea",
             "description": "",
-            "gen-part": 5.0,
             "is-water-line": true
         }, {
             "id": 3,
             "name": "sand",
             "description": "",
-            "gen-part": 1.0
         }, {
             "id": 4,
             "name": "plain",
             "description": "",
-            "gen-part": 49.0,
             "default": true
         }
     ],

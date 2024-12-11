@@ -82,7 +82,6 @@ struct tile_t {
     int id;
     char *name;         /* not strduped */
     char *description;  /* not strduped */
-    float gen_part;
     int is_default;
     int is_water_line;  /* boolean */
 };

@@ -1,5 +1,6 @@
 #include"rand.h"
 #include "types.h"
+#include "stb_ds.h"
 #include <time.h>
 
 /* Mersene twister pseudorandom number generator */
@@ -166,6 +167,16 @@ static float quntic_curve(float t_) {
 
 float lerp(float a_, float b_, float t_) {
     return a_ + (b_ - a_) * t_;
+}
+
+int individual_distribute(float *items, float v) {
+    int i, ie;
+    float sum = .0;
+    for (i = 0, ie = arrlenu(items); i != ie; ++i) {
+        sum += items[i];
+        if (v < sum) break;
+    }
+    return i;
 }
 
 static float dot(struct vec2f a_, struct vec2f b_) {

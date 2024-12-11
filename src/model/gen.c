@@ -9,38 +9,17 @@
 
 #define between(a, b, e) ((a) >= (b) && (a) < (e))
 
-int individual_distribute(float *items, float v) {
-    int i, ie;
-    float sum = .0;
-    for (i = 0, ie = arrlenu(items); i != ie; ++i) {
-        sum += items[i];
-        if (v < sum) break;
-    }
-    return i;
-}
-
 /*
  * Height
  */
 
 static void
-gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
-    map->size = size;
-    map->tiles = malloc(sizeof(struct tile) * size.x * size.y);
-
-    float *gen_parts = NULL;
-    float water_sum = .0;
-    float water_line = .0;;
-    arrsetlen(gen_parts, arrlenu(map->tile_types));
-    for (int i = 0, ie = arrlenu(map->tile_types); i != ie; ++i) {
-        gen_parts[i] = map->tile_types[i].gen_part;
-        water_sum += gen_parts[i];
-        if (map->tile_types[i].is_water_line)
-            water_line = water_sum / 100.;
-    }
-
+gen_height(struct map *map, struct mt_state *mt, struct vec2 size) {
     struct perlin2d perlin;
     perlin2d_init(&perlin, mt);
+
+    map->size = size;
+    map->tiles = malloc(sizeof(struct tile) * size.x * size.y);
     for (int i = 0, y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x, ++i) {
             float r = perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
@@ -56,8 +35,6 @@ gen_map(struct map *map, struct mt_state *mt, struct vec2 size) {
             map->tiles[i] = tile;
         }
     }
-
-    arrfree(gen_parts);
 }
 
 struct tile *
@@ -168,10 +145,6 @@ gen_humidity_from_wind(struct world *w, struct wind *wind) {
     int dest_latitude = trim(0, size.y - 1, (90. - wind->dest_latitude) * size.y / 180);
     int inc = dest_latitude < jet_latitude ? 1 : -1;
 
-    /*
-    printf("jet latitude: %i, dest latitude: %i\n", jet_latitude, dest_latitude);
-    */
-
     for (int y = dest_latitude, ye = jet_latitude; y != ye; y += inc) {
         for (int x = 0; x != size.x; ++x) {
             gen_tile_humidity(map, jet_latitude, dest_latitude, wind->persistence, x, y);
@@ -275,7 +248,7 @@ gen_unit_ais(struct world *w) {
  */
 
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
-    gen_map(&w->map, w->mt, size);
+    gen_height(&w->map, w->mt, size);
     gen_humidity(w);
     gen_covers(w);
     transit_map(w);

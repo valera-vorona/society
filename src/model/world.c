@@ -211,14 +211,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     return 1;
                 }
 
-                p = jq_find(v, "gen-part", 0);
-                if (p && jq_isnumber(p)) {
-                    t.gen_part = p->type == JQ_V_INTEGER ? p->value.integer : p->value.real;
-                } else {
-                    app_warning("'gen-part' is not found or not a number");
-                    return 1;
-                }
-
                 p = jq_find(v, "default", 0);
                 if (p) {
                     if (jq_isboolean(p)) {
