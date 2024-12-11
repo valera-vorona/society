@@ -53,20 +53,19 @@
         {
             "id": 0,
             "name": "unknown",
-            "description": "",
+            "description": ""
         }, {
             "id": 1,
             "name": "ocean",
-            "description": "",
+            "description": ""
         }, {
             "id": 2,
             "name": "sea",
-            "description": "",
-            "is-water-line": true
+            "description": ""
         }, {
             "id": 3,
             "name": "sand",
-            "description": "",
+            "description": ""
         }, {
             "id": 4,
             "name": "plain",

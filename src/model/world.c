@@ -226,19 +226,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     t.is_default = 0;
                 }
 
-                p = jq_find(v, "is-water-line", 0);
-                if (p) {
-                    if (jq_isboolean(p)) {
-                        t.is_water_line = p->type == JQ_V_TRUE;
-                    } else {
-                        app_warning("'is-water-line' is not boolean");
-                        return 1;
-                    }
-                } else {
-                    /* setting default is_water_line */
-                    t.is_water_line = 0;
-                }
-
                 arrput(w->map.tile_types, t);
             } else {
                 app_warning("'tile' is not an object");
@@ -286,7 +273,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     if (p) {
                         if (get_range(p, c.height))
                             return 1;
-                        printf("height: %f:%f\n", c.height[0], c.height[1]);
                     } else {
                         app_warning("'height' of cover doest't exist");
                         return 1;
@@ -296,7 +282,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     if (p) {
                         if (get_range(p, c.humidity))
                             return 1;
-                        printf("humidity: %f:%f\n", c.humidity[0], c.humidity[1]);
                     } else {
                         app_warning("'humidity' of cover doest't exist");
                         return 1;
