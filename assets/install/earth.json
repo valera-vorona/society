@@ -47,6 +47,11 @@
             "jet_latitude": 30,
             "dest_latitude": 0,
             "persistence": 0.98
+        }, {
+            "name": "South passat",
+            "jet_latitude": -30,
+            "dest_latitude": 0,
+            "persistence": 0.98
         }
     ],
     "tiles": [
@@ -64,13 +69,21 @@
             "description": ""
         }, {
             "id": 3,
-            "name": "sand",
+            "name": "desert",
             "description": ""
         }, {
             "id": 4,
             "name": "plain",
             "description": "",
             "default": true
+        }, {
+            "id": 5,
+            "name": "hills",
+            "description": ""
+        }, {
+            "id": 6,
+            "name": "mountains",
+            "description": ""
         }
     ],
     "covers": [
@@ -83,13 +96,21 @@
             "height": [ -0.05, 0.0 ],
             "humidity": [ 0.0, 1.1 ]
         }, {
-            "type": "sand",
+            "type": "desert",
             "height": [ 0.0, 1.0 ],
             "humidity": [ 0.0, 0.1 ]
         }, {
             "type": "plain",
-            "height": [ 0.0, 1.0 ],
+            "height": [ 0.0, 0.15 ],
             "humidity": [ 0.1, 1.0 ]
+        }, {
+            "type": "hills",
+            "height": [ 0.15, 0.2 ],
+            "humidity": [ 0.0, 1.0 ]
+        }, {
+            "type": "mountains",
+            "height": [ 0.2, 1.0 ],
+            "humidity": [ 0.0, 1.0 ]
         }
     ],
     "units": [
@@ -101,10 +122,15 @@
         }, {
             "id": 1,
             "name": "human",
-            "probs": { "plain": 0.001 },
+            "probs": {
+                "plain": 0.001,
+                "hills": 0.0005
+            },
             "pass": {
-                "sand": 1.5,
-                "plain": 1.0
+                "desert": 1.5,
+                "plain": 1.0,
+                "hills": 2.0,
+                "mountains": 5.0
             }
         }
     ]
