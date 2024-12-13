@@ -315,7 +315,7 @@ gen_unit_ais(struct world *w) {
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_height(&w->map, w->mt, size);
     gen_humidity(w);
-    gen_covers(w);
+//    gen_covers(w);
     apply_generators(w);
     transit_map(w);
     gen_units(w);
