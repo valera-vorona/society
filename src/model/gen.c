@@ -16,15 +16,23 @@
 static void
 gen_height(struct map *map, struct mt_state *mt, struct vec2 size) {
     struct perlin2d perlin;
-    perlin2d_init(&perlin, mt);
 
+    int default_type = 0;
+    for (int i = 0, ie = arrlenu(map->tile_types); i != ie; ++i) {
+        if (map->tile_types[i].is_default) {
+            default_type = map->tile_types[i].id;
+            break;
+        }
+    }
+
+    perlin2d_init(&perlin, mt);
     map->size = size;
     map->tiles = malloc(sizeof(struct tile) * size.x * size.y);
     for (int i = 0, y = 0; y < size.y; ++y) {
         for (int x = 0; x < size.x; ++x, ++i) {
             float r = perlin2d_noise_x(&perlin, (float)x/64., (float)y/64., 5, .7);
             struct tile tile = {
-                //.type = individual_distribute(gen_parts, r * 100.),
+                .type = default_type,
                 .tileset_index = 0,
                 .transit_index = 0,
                 .height = r,// - water_line,
@@ -168,24 +176,15 @@ static void
 gen_covers(struct world *w) {
     struct map *m = &w->map;
     struct cover *c = m->covers;
-    int default_type = 0;
-    for (int i = 0, ie = arrlenu(m->tile_types); i != ie; ++i) {
-        if (m->tile_types[i].is_default) {
-            default_type = m->tile_types[i].id;
-            break;
-        }
-    }
 
     for (int i = 0, ie = m->size.x * m->size.y; i != ie; ++i) {
         struct tile *t = m->tiles + i;
-        int type = default_type;
         for (int j = 0, je = arrlenu(c); j != je; ++j) {
             if (between(t->height, c[j].height.min, c[j].height.max) && between(t->humidity, c[j].humidity.min, c[j].humidity.max)) {
-                type = c[j].type;
+                t->type = c[j].type;
                 break;
             }
         }
-        t->type = type;
     }
 }
 
