@@ -35,6 +35,12 @@ enum tool_t {
     TLT_AXE
 };
 
+enum generator_out_type {
+    GT_UNKNOWN = 0,
+    GT_TILE,
+    GT_RESOURCE
+};
+
 /*
  * structs
  */
@@ -57,6 +63,10 @@ struct recti {
 
 struct vec2f {
     float x, y;
+};
+
+struct range {
+    float min, max;
 };
 
 struct characteristics {
@@ -87,9 +97,9 @@ struct tile_t {
 };
 
 struct cover {
-    int type;           /* output tile type id */
-    float height[2];    /* height range */
-    float humidity[2];  /* humidity range */
+    int type;               /* output tile type id */
+    struct range height;    /* height range */
+    struct range humidity;  /* humidity range */
 };
 
 struct tile {
@@ -135,6 +145,23 @@ struct unit {
     struct vec2 coords;
     struct innate innate;
     struct characteristics characteristics;
+};
+
+/*
+ * generator
+ */
+
+struct generator {
+    int func;
+    struct {
+        struct range height;
+        struct range humidity;
+        float prob;
+    } in;
+    struct {
+        enum generator_out_type type;
+        char *name;
+    } out;
 };
 
 /*
@@ -263,6 +290,7 @@ struct world {
     struct resource *recources;
     struct unit_t *unit_types;
     struct unit *units;
+    struct generator *generators;
     struct ai *ais;
     struct building *buildings;
     struct asset *assets;

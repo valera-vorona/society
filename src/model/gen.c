@@ -179,7 +179,7 @@ gen_covers(struct world *w) {
         struct tile *t = m->tiles + i;
         int type = default_type;
         for (int j = 0, je = arrlenu(c); j != je; ++j) {
-            if (between(t->height, c[j].height[0], c[j].height[1]) && between(t->humidity, c[j].humidity[0], c[j].humidity[1])) {
+            if (between(t->height, c[j].height.min, c[j].height.max) && between(t->humidity, c[j].humidity.min, c[j].humidity.max)) {
                 type = c[j].type;
                 break;
             }

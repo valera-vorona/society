@@ -5,7 +5,7 @@
 #include "stb_ds.h"
 
 static int get_vec2(struct jq_value *v, struct vec2 *out);
-static int get_range(struct jq_value *v, float *out);
+static int get_range(struct jq_value *v, struct range *out);
 
 int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     char buf[4096];
@@ -312,7 +312,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
 
                     p = jq_find(v, "height", 0);
                     if (p) {
-                        if (get_range(p, c.height))
+                        if (get_range(p, &c.height))
                             return 1;
                     } else {
                         app_warning("'height' of cover doest't exist");
@@ -321,7 +321,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
 
                     p = jq_find(v, "humidity", 0);
                     if (p) {
-                        if (get_range(p, c.humidity))
+                        if (get_range(p, &c.humidity))
                             return 1;
                     } else {
                         app_warning("'humidity' of cover doest't exist");
@@ -437,6 +437,121 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         return 1;
     }
 
+    /* Reading generators */
+    w->generators = NULL;
+    val = jq_find(w->json, "generators", 0);
+    if (val && jq_isarray(val)) {
+        jq_foreach_array(v, val) {
+            if (jq_isobject(v)) {
+                struct generator g;
+                struct jq_value *p = jq_find(v, "func", 0);
+                if (p && jq_isstring(p)) {
+                    if (!strcmp(p->value.string, "standard")) {
+                        g.out.type = 1;
+                    } else {
+                        app_warning("No generator func found with name '%s', it should be 'standard'", p->value.string);
+                        return 1;
+                    }
+                } else {
+                    app_warning("'func' of generator is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "in", "height", 0);
+                if (p) {
+                    if (get_range(p, &g.in.height))
+                        return 1;
+                } else {
+                    /* setting default height */
+                    g.in.height.min = .0;
+                    g.in.height.max = 1.;
+                }
+
+                p = jq_find(v, "in", "humidity", 0);
+                if (p) {
+                    if (get_range(p, &g.in.humidity))
+                        return 1;
+                } else {
+                    /* setting default humidity */
+                    g.in.humidity.min = .0;
+                    g.in.humidity.max = 1.;
+                }
+
+                p = jq_find(v, "in", "prob", 0);
+                if (p && jq_isreal(p)) {
+                    g.in.prob = p->value.real;
+                } else {
+                    /* setting default prob */
+                    g.in.prob = 1.;
+                }
+
+                p = jq_find(v, "out", "type", 0);
+                if (p && jq_isstring(p)) {
+                    if (!strcmp(p->value.string, "tile")) {
+                        g.out.type = GT_TILE;
+                    } else if (!strcmp(p->value.string, "resource")) {
+                        g.out.type = GT_RESOURCE;
+                    } else {
+                        app_warning("No tile type found with name '%s', it should be 'tile' or 'resource'", p->value.string);
+                        return 1;
+                    }
+                } else {
+                    app_warning("'out.type' is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "out", "name", 0);
+                if (p && jq_isstring(p)) {
+                    switch (g.out.type) {
+                    case GT_TILE:
+                        g.out.name = NULL;
+                        for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
+                            if (!strcmp(p->value.string, w->map.tile_types[i].name)) {
+                                g.out.name = p->value.string;
+                                break;
+                            }
+                        }
+                        if (!g.out.name) {
+                            app_warning("No tile type found with name '%s'", p->value.string);
+                            return 1;
+                        }
+                        break;
+
+                    case GT_RESOURCE:
+                        g.out.name = NULL;
+                        for (int i = 0, ie = arrlenu(w->resource_types); i != ie; ++i) {
+                            if (!strcmp(p->value.string, w->resource_types[i].name)) {
+                                g.out.name = p->value.string;
+                                break;
+                            }
+                        }
+                        if (!g.out.name) {
+                            app_warning("No resource type found with name '%s'", p->value.string);
+                            return 1;
+                        }
+                        break;
+
+                    default:
+                        app_warning("Unknown tile type");
+                        return 1;
+                    }
+                } else {
+                    app_warning("'out.name' is not found or not a string");
+                    return 1;
+                }
+
+                arrput(w->generators, g);
+            } else {
+                app_warning("'generator' is not an object");
+                return 1;
+            }
+        }
+    } else {
+        app_warning("'generators' is not found or not an array");
+        return 1;
+    }
+
+    /* Reading unit types */
     return 0;
 }
 
@@ -497,14 +612,14 @@ get_vec2(struct jq_value *v, struct vec2 *out) {
 }
 
 static int
-get_range(struct jq_value *v, float *out) {
-    float rv[2];
+get_range(struct jq_value *v, struct range *out) {
+    struct range rv;
     struct jq_value *k;
 
     if (jq_isarray(v) && jq_array_length(v) == 2) {
         k = jq_find(v, "0", 0);
         if (k && jq_isnumber(k)) {
-            rv[0] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+            rv.min = jq_isreal(k) ? k->value.real : (float)k->value.integer;
         } else {
             app_warning("'range[0]' is not a number");
             return 1;
@@ -512,7 +627,7 @@ get_range(struct jq_value *v, float *out) {
 
         k = jq_find(v, "1", 0);
         if (k && jq_isnumber(k)) {
-            rv[1] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+            rv.max = jq_isreal(k) ? k->value.real : (float)k->value.integer;
         } else {
             app_warning("'range[1]' is not a number");
             return 1;
@@ -520,7 +635,7 @@ get_range(struct jq_value *v, float *out) {
     } else if (jq_isobject(v)) {
         k = jq_find(v, "min");
         if (k && jq_isnumber(k)) {
-            rv[0] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+            rv.min = jq_isreal(k) ? k->value.real : (float)k->value.integer;
         } else {
             app_warning("'range.min' is not a number");
             return 1;
@@ -528,7 +643,7 @@ get_range(struct jq_value *v, float *out) {
 
         k = jq_find(v, "max");
         if (k && jq_isnumber(k)) {
-            rv[1] = jq_isreal(k) ? k->value.real : (float)k->value.integer;
+            rv.max = jq_isreal(k) ? k->value.real : (float)k->value.integer;
         } else {
             app_warning("'range.max' is not a number");
             return 1;
@@ -538,8 +653,7 @@ get_range(struct jq_value *v, float *out) {
         return 1;
     }
 
-    out[0] = rv[0];
-    out[1] = rv[1];
+    *out = rv;
     return 0;
 }
 
