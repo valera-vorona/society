@@ -173,8 +173,10 @@ void main_view_draw(struct view *view) {
                     dest.x = (x - frame.x) * dest.w - left_margin.x;
                     dest.y = (y - frame.y) * dest.h - left_margin.y;
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    /* drawing tile transit */
                     sub = tileset_get_image_by_index(data->landset, tile->transit_index);
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    /* drawing resource */
                     if (tile->resource != ID_NOTHING) {
                         sub = tileset_get_image_by_index(data->resourceset, resource_types[tile->resource].id);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
@@ -182,7 +184,7 @@ void main_view_draw(struct view *view) {
                 }
             }
 
-            /* handling mouse press the map_view */
+            /* handling mouse press on the map_view */
             if (data->action == A_WALK && (data->prev_hovered_coo.x != hovered_coo.x || data->prev_hovered_coo.y != hovered_coo.y)) {
                 if (data->path.steps)
                     path_free(&data->path);
