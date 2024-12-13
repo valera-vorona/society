@@ -95,33 +95,6 @@
             "name": "forest"
         }
     ],
-    "covers": [
-        {
-            "type": "ocean",
-            "height": [ -1.0, -0.05 ],
-            "humidity": [ 0.0, 1.1 ]
-        }, {
-            "type": "sea",
-            "height": [ -0.05, 0.0 ],
-            "humidity": [ 0.0, 1.1 ]
-        }, {
-            "type": "desert",
-            "height": [ 0.0, 1.0 ],
-            "humidity": [ 0.0, 0.1 ]
-        }, {
-            "type": "plain",
-            "height": [ 0.0, 0.15 ],
-            "humidity": [ 0.1, 1.0 ]
-        }, {
-            "type": "hills",
-            "height": [ 0.15, 0.2 ],
-            "humidity": [ 0.0, 1.0 ]
-        }, {
-            "type": "mountains",
-            "height": [ 0.2, 1.0 ],
-            "humidity": [ 0.0, 1.0 ]
-        }
-    ],
     "units": [
         {
             "id": 0,

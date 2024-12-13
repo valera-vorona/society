@@ -283,63 +283,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         return 1;
     }
 
-    /* Reading covers */
-    w->map.covers = NULL;
-    val = jq_find(w->json, "covers", 0);
-    if (val) {
-        if (jq_isarray(val)) {
-            jq_foreach_array(v, val) {
-                if (jq_isobject(v)) {
-                    struct cover c;
-                    struct jq_value *p = jq_find(v, "type", 0);
-                    if (p && jq_isstring(p)) {
-                        int type = -1;
-                        for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
-                            if (!strcmp(p->value.string, w->map.tile_types[i].name)) {
-                                type = w->map.tile_types[i].id;
-                                break;
-                            }
-                        }
-                        if (type == -1) {
-                            app_warning("No tile type found with name '%s'", p->value.string);
-                            return 1;
-                        }
-                        c.type = type;
-                    } else {
-                        app_warning("'type' of cover is not found or not a string");
-                        return 1;
-                    }
-
-                    p = jq_find(v, "height", 0);
-                    if (p) {
-                        if (get_range(p, &c.height))
-                            return 1;
-                    } else {
-                        app_warning("'height' of cover doest't exist");
-                        return 1;
-                    }
-
-                    p = jq_find(v, "humidity", 0);
-                    if (p) {
-                        if (get_range(p, &c.humidity))
-                            return 1;
-                    } else {
-                        app_warning("'humidity' of cover doest't exist");
-                        return 1;
-                    }
-
-                    arrput(w->map.covers, c);
-                } else {
-                    app_warning("'cover' is not an object");
-                    return 1;
-                }
-            }
-        } else {
-            app_warning("'covers' is not an array");
-            return 1;
-        }
-    }
-
     /* Reading unit types */
     w->unit_types = NULL;
     val = jq_find(w->json, "units", 0);
@@ -551,7 +494,6 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         return 1;
     }
 
-    /* Reading unit types */
     return 0;
 }
 

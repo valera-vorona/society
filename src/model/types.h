@@ -96,12 +96,6 @@ struct tile_t {
     int is_default;
 };
 
-struct cover {
-    int type;               /* output tile type id */
-    struct range height;    /* height range */
-    struct range humidity;  /* humidity range */
-};
-
 struct tile {
     int type;
     int tileset_index;
@@ -116,7 +110,6 @@ struct map {
     struct vec2 size;
     struct tile_t *tile_types;
     struct tile *tiles;
-    struct cover *covers;
 };
 
 /*

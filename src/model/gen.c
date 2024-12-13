@@ -169,26 +169,6 @@ gen_humidity(struct world *w) {
 }
 
 /*
- * Covers
- */
-
-static void
-gen_covers(struct world *w) {
-    struct map *m = &w->map;
-    struct cover *c = m->covers;
-
-    for (int i = 0, ie = m->size.x * m->size.y; i != ie; ++i) {
-        struct tile *t = m->tiles + i;
-        for (int j = 0, je = arrlenu(c); j != je; ++j) {
-            if (between(t->height, c[j].height.min, c[j].height.max) && between(t->humidity, c[j].humidity.min, c[j].humidity.max)) {
-                t->type = c[j].type;
-                break;
-            }
-        }
-    }
-}
-
-/*
  * Generators
  */
 
@@ -315,7 +295,6 @@ gen_unit_ais(struct world *w) {
 void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_height(&w->map, w->mt, size);
     gen_humidity(w);
-//    gen_covers(w);
     apply_generators(w);
     transit_map(w);
     gen_units(w);
