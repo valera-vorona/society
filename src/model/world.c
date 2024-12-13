@@ -242,7 +242,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     }
 
     /* Reading resource types */
-    w->map.resource_types = NULL;
+    w->resource_types = NULL;
     val = jq_find(w->json, "resources", 0);
     if (val && jq_isarray(val)) {
         jq_foreach_array(v, val) {
@@ -271,7 +271,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     r.description = "";
                 }
 
-                arrput(w->map.resource_types, r);
+                arrput(w->resource_types, r);
             } else {
                 app_warning("'resource' is not an object");
                 return 1;

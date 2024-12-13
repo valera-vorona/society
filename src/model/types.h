@@ -106,8 +106,6 @@ struct map {
     struct tile_t *tile_types;
     struct tile *tiles;
     struct cover *covers;
-    struct resource_t *resource_types;
-    struct resource *recources;
 };
 
 /*
@@ -261,6 +259,8 @@ struct world {
     struct tileset_hash *tilesets;
     struct ai *player_ai;
     struct map map;
+    struct resource_t *resource_types;
+    struct resource *recources;
     struct unit_t *unit_types;
     struct unit *units;
     struct ai *ais;
