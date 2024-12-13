@@ -17,11 +17,6 @@ struct world;
  * enums 
  */
 
-enum resource_t {
-    RT_UNKNOWN = 0,
-    RT_WOOD
-};
-
 enum building_t {
     BT_UNKNOWN = 0,
     BT_HOUSE,
@@ -73,8 +68,14 @@ struct characteristics {
  * map 
  */
 
+struct resource_t {
+    int id;
+    char *name;
+    char *description;
+};
+
 struct resource {
-   enum resource_t type;
+   int type;
    struct vec2 coords;
 };
 
@@ -103,8 +104,10 @@ struct tile {
 struct map {
     struct vec2 size;
     struct tile_t *tile_types;
-    struct cover *covers;
     struct tile *tiles;
+    struct cover *covers;
+    struct resource_t *resource_types;
+    struct resource *recources;
 };
 
 /*
@@ -258,7 +261,6 @@ struct world {
     struct tileset_hash *tilesets;
     struct ai *player_ai;
     struct map map;
-    struct resource *recources;
     struct unit_t *unit_types;
     struct unit *units;
     struct ai *ais;

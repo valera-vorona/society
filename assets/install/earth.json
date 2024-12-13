@@ -86,6 +86,15 @@
             "description": ""
         }
     ],
+    "resources": [
+        {
+            "id": 0,
+            "name": "stone"
+        }, {
+            "id": 1,
+            "name": "forest"
+        }
+    ],
     "covers": [
         {
             "type": "ocean",

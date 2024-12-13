@@ -207,8 +207,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 if (p && jq_isstring(p)) {
                     t.description = p->value.string;
                 } else {
-                    app_warning("'description' of tile is not found or not a string");
-                    return 1;
+                    t.description = "";
                 }
 
                 p = jq_find(v, "default", 0);
@@ -239,6 +238,48 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         }
     } else {
         app_warning("'tiles' doesn't exist or is not an array");
+        return 1;
+    }
+
+    /* Reading resource types */
+    w->map.resource_types = NULL;
+    val = jq_find(w->json, "resources", 0);
+    if (val && jq_isarray(val)) {
+        jq_foreach_array(v, val) {
+            if (jq_isobject(v)) {
+                struct resource_t r;
+                struct jq_value *p = jq_find(v, "id", 0);
+                if (p && jq_isinteger(p)) {
+                    r.id = p->value.integer;
+                } else {
+                    app_warning("'id' of resource is not found or not an integer");
+                    return 1;
+                }
+
+                p = jq_find(v, "name", 0);
+                if (p && jq_isstring(p)) {
+                    r.name = p->value.string;
+                } else {
+                    app_warning("'name' of resource is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "description", 0);
+                if (p && jq_isstring(p)) {
+                    r.description = p->value.string;
+                } else {
+                    r.description = "";
+                }
+
+                arrput(w->map.resource_types, r);
+            } else {
+                app_warning("'resource' is not an object");
+                return 1;
+            }
+        }
+    } else {
+
+        app_warning("'resources' doesn't exist or is not an array");
         return 1;
     }
 
