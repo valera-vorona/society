@@ -119,7 +119,9 @@ void main_view_draw(struct view *view) {
     struct main_view *data = (struct main_view *)view->data;
     struct map *map = &w->map;
     struct unit *units = w->units;
+    struct unit_t *unit_types = w->unit_types;
     struct unit *player = w->player_ai->unit;
+    struct resource_t *resource_types = w->resource_types;
     struct vec2 win_size = get_win_size(app);
 
     enum nk_widget_layout_states state;
@@ -174,7 +176,7 @@ void main_view_draw(struct view *view) {
                     sub = tileset_get_image_by_index(data->landset, tile->transit_index);
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     if (tile->resource != ID_NOTHING) {
-                        sub = tileset_get_image_by_index(data->resourceset, tile->resource);
+                        sub = tileset_get_image_by_index(data->resourceset, resource_types[tile->resource].id);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
                 }
@@ -228,7 +230,7 @@ void main_view_draw(struct view *view) {
                             nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                         }
 
-                        sub = tileset_get_image_by_index(data->unitset, 16);
+                        sub = tileset_get_image_by_index(data->unitset, unit_types[u->type].id);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
                 }
@@ -307,7 +309,10 @@ void main_view_draw(struct view *view) {
         nk_layout_row_dynamic(ctx, 20, 1);
 
         if (hovered_tile) {
+            int resource_type = hovered_tile->resource;
             snprintf(str, sizeof(str), "Terrian: %s", map->tile_types[hovered_tile->type].name);
+            nk_label(ctx, str, NK_TEXT_LEFT);
+            snprintf(str, sizeof(str), "Resource: %s", resource_type != ID_NOTHING ? resource_types[hovered_tile->resource].name : "");
             nk_label(ctx, str, NK_TEXT_LEFT);
             snprintf(str, sizeof(str), "Coordinates: %i:%i", hovered_coo.x, hovered_coo.y);
             nk_label(ctx, str, NK_TEXT_LEFT);

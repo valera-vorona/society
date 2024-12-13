@@ -281,7 +281,6 @@ struct world {
     struct ai *player_ai;
     struct map map;
     struct resource_t *resource_types;
-    struct resource *recources;
     struct unit_t *unit_types;
     struct unit *units;
     struct generator *generators;

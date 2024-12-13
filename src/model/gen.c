@@ -20,7 +20,7 @@ gen_height(struct map *map, struct mt_state *mt, struct vec2 size) {
     int default_type = 0;
     for (int i = 0, ie = arrlenu(map->tile_types); i != ie; ++i) {
         if (map->tile_types[i].is_default) {
-            default_type = map->tile_types[i].id;
+            default_type = i;
             break;
         }
     }
@@ -35,7 +35,7 @@ gen_height(struct map *map, struct mt_state *mt, struct vec2 size) {
                 .type = default_type,
                 .tileset_index = 0,
                 .transit_index = 0,
-                .height = r,// - water_line,
+                .height = r,
                 .humidity = .0,
                 .resource = ID_NOTHING,
                 .units = { ID_NOTHING }
@@ -188,7 +188,7 @@ standard_generator(struct world *w, struct generator *g) {
             case GT_TILE:
                 for (int i = 0, ie = arrlenu(m->tile_types); i != ie; ++i) {
                     if (!strcmp(g->out.name, m->tile_types[i].name)) {
-                        t->type = m->tile_types[i].id;
+                        t->type = i;
                         found = 1;
                         break;
                     }
@@ -202,7 +202,7 @@ standard_generator(struct world *w, struct generator *g) {
             case GT_RESOURCE:
                 for (int i = 0, ie = arrlenu(w->resource_types); i != ie; ++i) {
                     if (!strcmp(g->out.name, w->resource_types[i].name)) {
-                        t->resource = w->resource_types[i].id;
+                        t->resource = i;
                         found = 1;
                         break;
                     }

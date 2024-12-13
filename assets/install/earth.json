@@ -112,7 +112,7 @@
             "probs": {},
             "pass": {}
         }, {
-            "id": 1,
+            "id": 16,
             "name": "human",
             "probs": {
                 "plain": 0.001,
@@ -190,9 +190,9 @@
         }, {
             "func": "standard",
             "in": {
-                "height": [ 0.22, 0.7 ],
-                "humidity": [ 0.0, 0.4 ],
-                "prob": 0.8
+                "height": [ 0.2, 0.3 ],
+                "humidity": [ 0.0, 1.0 ],
+                "prob": 0.5
             },
             "out": {
                 "type": "resource",
