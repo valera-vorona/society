@@ -14,6 +14,16 @@
                 "quad": [4, 4]
             }
         },
+        "resourceset": {
+            "type": "simple",
+            "file": "resourceset.png",
+            "size": {
+                "margin": [16, 16],
+                "padding": [8, 8],
+                "tile": [64, 80],
+                "tileset": [8, 8]
+            }
+        },
         "unitset": {
             "type": "simple",
             "file": "unitset.png",
@@ -91,7 +101,7 @@
             "id": 0,
             "name": "stone"
         }, {
-            "id": 1,
+            "id": 8,
             "name": "forest"
         }
     ],
@@ -141,7 +151,7 @@
             "func": "standard",
             "in": {
                 "height": [ 0.0, 1.0 ],
-                "humidity": [ 0.0, 0.1 ]
+                "humidity": [ 0.0, 0.05 ]
             },
             "out": {
                 "type": "tile",
@@ -180,9 +190,9 @@
         }, {
             "func": "standard",
             "in": {
-                "height": [ 0.25, 0.7 ],
+                "height": [ 0.22, 0.7 ],
                 "humidity": [ 0.0, 0.4 ],
-                "prob": 0.4
+                "prob": 0.8
             },
             "out": {
                 "type": "resource",
@@ -191,9 +201,9 @@
         }, {
             "func": "standard",
             "in": {
-                "height": [ 0.0, 0.2 ],
-                "humidity": [ 0.2, 1.0 ],
-                "prob": 1.0
+                "height": [ 0.02, 0.18 ],
+                "humidity": [ 0.05, 1.0 ],
+                "prob": 0.5
             },
             "out": {
                 "type": "resource",

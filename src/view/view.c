@@ -30,6 +30,7 @@ struct main_view {
     struct nk_image minimap;
 
     struct tileset *landset;
+    struct tileset *resourceset;
     struct tileset *unitset;
     struct tileset *iconset;
 };
@@ -46,9 +47,10 @@ void main_view_init(struct view *view) {
     data->prev_hovered_coo.x = -1;
     data->prev_hovered_coo.y = -1;
 
-    data->landset = &shgetp_null(view->app->cur_world->value.tilesets, "landset")->value;
-    data->unitset = &shgetp_null(view->app->cur_world->value.tilesets, "unitset")->value;
-    data->iconset = &shgetp_null(view->app->cur_world->value.tilesets, "iconset")->value;
+    data->landset       = &shgetp_null(view->app->cur_world->value.tilesets, "landset")->value;
+    data->resourceset   = &shgetp_null(view->app->cur_world->value.tilesets, "resourceset")->value;
+    data->unitset       = &shgetp_null(view->app->cur_world->value.tilesets, "unitset")->value;
+    data->iconset       = &shgetp_null(view->app->cur_world->value.tilesets, "iconset")->value;
 
     /* generate image rotations */
     if (icon_dup(view->app->renderer, data->iconset->image)) {
@@ -171,6 +173,10 @@ void main_view_draw(struct view *view) {
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     sub = tileset_get_image_by_index(data->landset, tile->transit_index);
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    if (tile->resource != ID_NOTHING) {
+                        sub = tileset_get_image_by_index(data->resourceset, tile->resource);
+                        nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
+                    }
                 }
             }
 
