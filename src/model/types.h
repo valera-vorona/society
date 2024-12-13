@@ -108,6 +108,7 @@ struct tile {
     int transit_index;
     float height;
     float humidity;
+    int resource;
     int units[1];
 };
 

@@ -29,6 +29,7 @@ gen_height(struct map *map, struct mt_state *mt, struct vec2 size) {
                 .transit_index = 0,
                 .height = r,// - water_line,
                 .humidity = .0,
+                .resource = ID_NOTHING,
                 .units = { ID_NOTHING }
             };
 
@@ -189,6 +190,71 @@ gen_covers(struct world *w) {
 }
 
 /*
+ * Generators
+ */
+
+static void
+standard_generator(struct world *w, struct generator *g) {
+    struct map *m = &w->map;
+
+    for (int i = 0, ie = m->size.x * m->size.y; i != ie; ++i) {
+        struct tile *t = m->tiles + i;
+        float r = (float)mt_random_uint32(w->mt) / (float)0xffffffff;
+        if (r < g->in.prob &&
+            between(t->height, g->in.height.min, g->in.height.max) &&
+            between(t->humidity, g->in.humidity.min, g->in.humidity.max)) {
+            int found = 0;
+
+            switch (g->out.type) {
+            case GT_TILE:
+                for (int i = 0, ie = arrlenu(m->tile_types); i != ie; ++i) {
+                    if (!strcmp(g->out.name, m->tile_types[i].name)) {
+                        t->type = m->tile_types[i].id;
+                        found = 1;
+                        break;
+                    }
+                }
+                if (!found) {
+                    /* TODO: handle it somehow, actually types are checked during world load in world_init function,
+                        so here it is not necessary to check them */
+                }
+                break;
+
+            case GT_RESOURCE:
+                for (int i = 0, ie = arrlenu(w->resource_types); i != ie; ++i) {
+                    if (!strcmp(g->out.name, w->resource_types[i].name)) {
+                        t->resource = w->resource_types[i].id;
+                        found = 1;
+                        break;
+                    }
+                }
+                if (!found) {
+                    /* TODO: handle it somehow, actually types are checked during world load in world_init function,
+                        so here it is not necessary to check them */
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+
+}
+
+static void
+apply_generator(struct world *w, struct generator *g) {
+    standard_generator(w, g);
+}
+
+static void
+apply_generators(struct world *w) {
+    for (int i = 0, ie = arrlenu(w->generators); i != ie; ++i) {
+        apply_generator(w, &w->generators[i]);
+    }
+}
+
+/*
  * Units
  */
 
@@ -251,6 +317,7 @@ void gen_world(struct world *w, struct vec2 size, uint32_t seed) {
     gen_height(&w->map, w->mt, size);
     gen_humidity(w);
     gen_covers(w);
+    apply_generators(w);
     transit_map(w);
     gen_units(w);
     gen_unit_flags(w);
