@@ -95,6 +95,7 @@ struct resource {
 };
 
 struct tile_t {
+    int id;
     int index;
     char *name;         /* not strduped */
     char *description;  /* not strduped */

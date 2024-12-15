@@ -187,7 +187,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         int default_found = 0;
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
-                struct tile_t t;
+                struct tile_t t = { .id = arrlenu(w->map.tile_types) };
                 struct jq_value *p = jq_find(v, "index", 0);
                 if (p && jq_isinteger(p)) {
                     t.index = p->value.integer;
@@ -333,15 +333,10 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     struct jq_pair *a;
                     jq_foreach_object(a, p) {
                         if (jq_isreal(&a->value)) {
-                            int found = 0;
-                            for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
-                                if (!strcmp(a->key, w->map.tile_types[i].name)) {
-                                    t.probs[i] = a->value.value.real;
-                                    found = 1;
-                                    break;
-                                }
-                            }
-                            if (!found) {
+                            struct wiki_hash *wn = shgetp_null(w->wiki, a->key);
+                            if (wn && wn->value.type == WT_TILE) {
+                                t.probs[wn->value.value.tile.id] = a->value.value.real;
+                            } else {
                                 app_warning("No tile type found with name '%s'", a->key);
                                 return 1;
                             }
@@ -360,15 +355,10 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     struct jq_pair *a;
                     jq_foreach_object(a, p) {
                         if (jq_isreal(&a->value)) {
-                            int found = 0;
-                            for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
-                                if (!strcmp(a->key, w->map.tile_types[i].name)) {
-                                    t.pass[i] = a->value.value.real;
-                                    found = 1;
-                                    break;
-                                }
-                            }
-                            if (!found) {
+                            struct wiki_hash *wn = shgetp_null(w->wiki, a->key);
+                            if (wn && wn->value.type == WT_TILE) {
+                                t.pass[wn->value.value.tile.id] = a->value.value.real;
+                            } else {
                                 app_warning("No tile type found with name '%s'", a->key);
                                 return 1;
                             }
