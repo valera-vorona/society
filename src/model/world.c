@@ -226,6 +226,10 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     t.is_default = 0;
                 }
 
+                if (shgetp_null(w->wiki, t.name)) {
+                    app_warning("Object with the name '%s' already exists in wiki", t.name);
+                    return 1;
+                }
                 arrput(w->map.tile_types, t);
                 struct wiki_node wn = { .type = WT_TILE, .value.tile = t };
                 shput(w->wiki, t.name, wn);
@@ -274,6 +278,10 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     r.description = "";
                 }
 
+                if (shgetp_null(w->wiki, r.name)) {
+                    app_warning("Object with the name '%s' already exists in wiki", r.name);
+                    return 1;
+                }
                 arrput(w->resource_types, r);
                 struct wiki_node wn = { .type = WT_RESOURCE, .value.resource = r };
                 shput(w->wiki, r.name, wn);
