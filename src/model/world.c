@@ -188,11 +188,11 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
                 struct tile_t t;
-                struct jq_value *p = jq_find(v, "id", 0);
+                struct jq_value *p = jq_find(v, "index", 0);
                 if (p && jq_isinteger(p)) {
-                    t.id = p->value.integer;
+                    t.index = p->value.integer;
                 } else {
-                    app_warning("'id' of tile is not found or not an integer");
+                    app_warning("'index' of tile is not found or not an integer");
                     return 1;
                 }
 
@@ -255,11 +255,11 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
                 struct resource_t r;
-                struct jq_value *p = jq_find(v, "id", 0);
+                struct jq_value *p = jq_find(v, "index", 0);
                 if (p && jq_isinteger(p)) {
-                    r.id = p->value.integer;
+                    r.index = p->value.integer;
                 } else {
-                    app_warning("'id' of resource is not found or not an integer");
+                    app_warning("'index' of resource is not found or not an integer");
                     return 1;
                 }
 
@@ -312,11 +312,11 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                     t.pass[i] = .0;
                 }
 
-                struct jq_value *p = jq_find(v, "id", 0);
+                struct jq_value *p = jq_find(v, "index", 0);
                 if (p && jq_isinteger(p)) {
-                    t.id = p->value.integer;
+                    t.index = p->value.integer;
                 } else {
-                    app_warning("'id' of unit is not found or not an integer");
+                    app_warning("'index' of unit is not found or not an integer");
                     return 1;
                 }
 

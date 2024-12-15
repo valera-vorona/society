@@ -85,7 +85,7 @@ struct characteristics {
  */
 
 struct resource_t {
-    int id;
+    int index;
     char *name;
     char *description;
 };
@@ -95,7 +95,7 @@ struct resource {
 };
 
 struct tile_t {
-    int id;
+    int index;
     char *name;         /* not strduped */
     char *description;  /* not strduped */
     int is_default;
@@ -127,7 +127,7 @@ enum unit_flags {
 };
 
 struct unit_t {
-    int id;
+    int index;
     char *name;         /* not strduped */
     float *probs;
     float *pass;

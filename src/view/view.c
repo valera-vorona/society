@@ -178,7 +178,7 @@ void main_view_draw(struct view *view) {
                     nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     /* drawing resource */
                     if (tile->resource != ID_NOTHING) {
-                        sub = tileset_get_image_by_index(data->resourceset, resource_types[tile->resource].id);
+                        sub = tileset_get_image_by_index(data->resourceset, resource_types[tile->resource].index);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
                 }
@@ -232,7 +232,7 @@ void main_view_draw(struct view *view) {
                             nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                         }
 
-                        sub = tileset_get_image_by_index(data->unitset, unit_types[u->type].id);
+                        sub = tileset_get_image_by_index(data->unitset, unit_types[u->type].index);
                         nk_draw_image(canvas, dest, &sub, nk_rgba(255, 255, 255, 255));
                     }
                 }

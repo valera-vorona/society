@@ -66,53 +66,59 @@
     ],
     "tiles": [
         {
-            "id": 0,
+            "index": 0,
             "name": "unknown",
             "description": ""
         }, {
-            "id": 1,
+            "index": 1,
             "name": "ocean",
             "description": ""
         }, {
-            "id": 2,
+            "index": 2,
             "name": "sea",
             "description": ""
         }, {
-            "id": 3,
+            "index": 3,
             "name": "desert",
             "description": ""
         }, {
-            "id": 4,
+            "index": 4,
             "name": "plain",
             "description": "",
             "default": true
         }, {
-            "id": 5,
+            "index": 5,
             "name": "hills",
             "description": ""
         }, {
-            "id": 6,
+            "index": 6,
             "name": "mountains",
             "description": ""
         }
     ],
     "resources": [
         {
-            "id": 0,
+            "index": 0,
+            "name": "rock"
+        }, {
+            "index": 8,
+            "name": "forest"
+        }, {
+            "index": 16,
             "name": "stone"
         }, {
-            "id": 8,
-            "name": "forest"
+            "index": 24,
+            "name": "wood"
         }
     ],
     "units": [
         {
-            "id": 0,
+            "index": 0,
             "name": "unknown",
             "probs": {},
             "pass": {}
         }, {
-            "id": 16,
+            "index": 16,
             "name": "human",
             "probs": {
                 "plain": 0.001,
@@ -208,6 +214,21 @@
             "out": {
                 "type": "resource",
                 "name": "forest"
+            }
+        }
+    ],
+    "receipts": [
+        {
+            "target": "stone",
+            "time": 180,
+            "required": {
+                "resources": [ "rock" ]
+            }
+        }, {
+            "target": "wood",
+            "time": 120,
+            "required": {
+                "resources": [ "forest" ]
             }
         }
     ]
