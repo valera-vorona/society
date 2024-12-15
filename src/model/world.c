@@ -15,6 +15,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     w->mt = mt;
 
     w->wiki = NULL;
+    w->wiki_receipts_by_resource = NULL;
     w->units = NULL;
     w->player_ai = NULL;
 
@@ -531,6 +532,13 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 }
 
                 arrput(w->receipts, r);
+                /* Making hash of arrays */
+                struct wiki_receipts_by_resource_hash *wn = hmgetp_null(w->wiki_receipts_by_resource, r.required.resource.type);
+                if (!wn) {
+                    hmput(w->wiki_receipts_by_resource, r.required.resource.type, NULL);
+                    wn = hmgetp_null(w->wiki_receipts_by_resource, r.required.resource.type);
+                }
+                arrput(wn->value, r);
             } else {
                 app_warning("'receipt' is not an object");
                 return 1;
@@ -644,5 +652,31 @@ get_range(struct jq_value *v, struct range *out) {
 
     *out = rv;
     return 0;
+}
+
+int
+is_receipt_possible(struct world *w, struct unit *u, struct receipt *r) {
+    return 1;
+}
+
+struct receipt *
+get_possible_harvests(struct world *w, struct unit *u, int resource, struct receipt *receipt) {
+    /* Getting hash of arrays */
+    struct wiki_receipts_by_resource_hash *wn = hmgetp_null(w->wiki_receipts_by_resource, resource);
+    if (wn) {
+        if (receipt == NULL)
+            receipt = wn->value;
+        else
+            ++receipt;
+
+        while (receipt - wn->value < arrlen(wn->value)) {
+            if (is_receipt_possible(w, u, receipt))
+                return receipt;
+            else
+                ++receipt;
+        }
+    }
+
+    return NULL;
 }
 

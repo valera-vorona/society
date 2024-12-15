@@ -195,6 +195,7 @@ void main_view_draw(struct view *view) {
                 if (!path_is_free(data->path)) {
                     ai_add_task_from_path(w->player_ai, data->path);
                     path_free(&data->path);
+                    data->action = A_NOTHING;
                 }
             }
         }

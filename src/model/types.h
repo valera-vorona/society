@@ -267,6 +267,11 @@ struct wiki_hash {
     struct wiki_node value;
 };
 
+struct wiki_receipts_by_resource_hash {
+    int key;
+    struct receipt *value;              /* array of receipts */
+};
+
 /*
  * world 
  */
@@ -301,6 +306,7 @@ struct tileset_hash {
 struct world {
     struct jq_value *json;
     struct wiki_hash *wiki;
+    struct wiki_receipts_by_resource_hash *wiki_receipts_by_resource;
     struct mt_state *mt;
     float fps;
     struct wind *winds;
