@@ -14,6 +14,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
 
     w->mt = mt;
 
+    w->wiki = NULL;
     w->units = NULL;
     w->player_ai = NULL;
 
@@ -226,6 +227,8 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 }
 
                 arrput(w->map.tile_types, t);
+                struct wiki_node wn = { .type = WT_TILE, .value.tile = t };
+                shput(w->wiki, t.name, wn);
             } else {
                 app_warning("'tile' is not an object");
                 return 1;
@@ -272,6 +275,8 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 }
 
                 arrput(w->resource_types, r);
+                struct wiki_node wn = { .type = WT_RESOURCE, .value.resource = r };
+                shput(w->wiki, r.name, wn);
             } else {
                 app_warning("'resource' is not an object");
                 return 1;
@@ -447,35 +452,25 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
                 if (p && jq_isstring(p)) {
                     switch (g.out.type) {
                     case GT_TILE:
-                        g.out.name = NULL;
-                        for (int i = 0, ie = arrlenu(w->map.tile_types); i != ie; ++i) {
-                            if (!strcmp(p->value.string, w->map.tile_types[i].name)) {
-                                g.out.name = p->value.string;
-                                break;
-                            }
-                        }
-                        if (!g.out.name) {
+                        if (shgetp_null(w->wiki, p->value.string)) {
+                            g.out.name = p->value.string;
+                        } else {
                             app_warning("No tile type found with name '%s'", p->value.string);
                             return 1;
                         }
                         break;
 
                     case GT_RESOURCE:
-                        g.out.name = NULL;
-                        for (int i = 0, ie = arrlenu(w->resource_types); i != ie; ++i) {
-                            if (!strcmp(p->value.string, w->resource_types[i].name)) {
-                                g.out.name = p->value.string;
-                                break;
-                            }
-                        }
-                        if (!g.out.name) {
+                        if (shgetp_null(w->wiki, p->value.string)) {
+                            g.out.name = p->value.string;
+                        } else {
                             app_warning("No resource type found with name '%s'", p->value.string);
                             return 1;
                         }
                         break;
 
                     default:
-                        app_warning("Unknown tile type");
+                        app_warning("Unknown generator type");
                         return 1;
                     }
                 } else {

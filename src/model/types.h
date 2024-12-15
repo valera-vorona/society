@@ -35,6 +35,12 @@ enum tool_t {
     TLT_AXE
 };
 
+enum wiki_type {
+    WT_UNKNOWN = 0,
+    WT_TILE,
+    WT_RESOURCE
+};
+
 enum generator_out_type {
     GT_UNKNOWN = 0,
     GT_TILE,
@@ -86,7 +92,6 @@ struct resource_t {
 
 struct resource {
    int type;
-   struct vec2 coords;
 };
 
 struct tile_t {
@@ -242,6 +247,23 @@ struct receipt {
 };
 
 /*
+ * wiki
+ */
+
+struct wiki_node {
+    enum wiki_type type;
+    union {
+        struct tile_t tile;
+        struct resource_t resource;
+    } value;
+};
+
+struct wiki_hash {
+    char *key;
+    struct wiki_node value;
+};
+
+/*
  * world 
  */
 
@@ -274,6 +296,7 @@ struct tileset_hash {
 
 struct world {
     struct jq_value *json;
+    struct wiki_hash *wiki;
     struct mt_state *mt;
     float fps;
     struct wind *winds;
