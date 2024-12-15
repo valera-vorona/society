@@ -254,7 +254,7 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
     if (val && jq_isarray(val)) {
         jq_foreach_array(v, val) {
             if (jq_isobject(v)) {
-                struct resource_t r;
+                struct resource_t r = { .id = arrlenu(w->resource_types) };
                 struct jq_value *p = jq_find(v, "index", 0);
                 if (p && jq_isinteger(p)) {
                     r.index = p->value.integer;
@@ -484,6 +484,60 @@ int world_init(struct world *w, const char *fname, struct mt_state *mt) {
         }
     } else {
         app_warning("'generators' is not found or not an array");
+        return 1;
+    }
+
+    /* Reading receipts */
+    w->receipts = NULL;
+    val = jq_find(w->json, "receipts", 0);
+    if (val && jq_isarray(val)) {
+        jq_foreach_array(v, val) {
+            if (jq_isobject(v)) {
+                struct receipt r;
+                struct jq_value *p = jq_find(v, "target", 0);
+                if (p && jq_isstring(p)) {
+                    struct wiki_hash *wn = shgetp_null(w->wiki, p->value.string);
+                    if (wn && wn->value.type == WT_RESOURCE) {
+                        r.target.type = wn->value.value.resource.id;
+                    } else {
+                        app_warning("No resource found with name '%s'", p->value.string);
+                        return 1;
+                    }
+                } else {
+                    app_warning("'target' of receipt is not found or not a string");
+                    return 1;
+                }
+
+                p = jq_find(v, "time", 0);
+                if (p && jq_isinteger(p)) {
+                    r.time = p->value.integer;
+                } else {
+                    app_warning("'time' of receipt is not found or not an integer");
+                    return 1;
+                }
+
+                p = jq_find(v, "required", "resource", 0);
+                if (p && jq_isstring(p)) {
+                    struct wiki_hash *wn = shgetp_null(w->wiki, p->value.string);
+                    if (wn && wn->value.type == WT_RESOURCE) {
+                        r.required.resource.type = wn->value.value.resource.id;
+                    } else {
+                        app_warning("No resource found with name '%s'", p->value.string);
+                        return 1;
+                    }
+                } else {
+                    app_warning("'required.resource' of receipt is not found or not a string");
+                    return 1;
+                }
+
+                arrput(w->receipts, r);
+            } else {
+                app_warning("'receipt' is not an object");
+                return 1;
+            }
+        }
+    } else {
+        app_warning("'receipts' is not found or not an array");
         return 1;
     }
 

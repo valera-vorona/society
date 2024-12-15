@@ -222,13 +222,13 @@
             "target": "stone",
             "time": 180,
             "required": {
-                "resources": [ "rock" ]
+                "resource": "rock"
             }
         }, {
             "target": "wood",
             "time": 120,
             "required": {
-                "resources": [ "forest" ]
+                "resource": "forest"
             }
         }
     ]

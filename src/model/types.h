@@ -85,6 +85,7 @@ struct characteristics {
  */
 
 struct resource_t {
+    int id;
     int index;
     char *name;
     char *description;
@@ -242,9 +243,11 @@ struct tool {
  */
 
 struct receipt {
-   enum building_t target;
-   struct tool *tools;
-   struct asset *assets;
+    struct resource target;
+    int time;
+    struct {
+        struct resource resource;
+    } required;
 };
 
 /*
